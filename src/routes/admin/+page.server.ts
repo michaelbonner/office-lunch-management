@@ -1,5 +1,6 @@
 import { db } from '$lib/server/db';
 import { restaurant } from '$lib/server/db/schema';
+import { isUserAdmin } from '$lib/server/organization';
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
@@ -11,8 +12,9 @@ export const load: PageServerLoad = async ({ locals }) => {
 		throw redirect(303, '/');
 	}
 
-	// Redirect to home if not admin
-	if (user.role !== 'admin') {
+	// Redirect to home if not admin in any organization
+	const isAdmin = await isUserAdmin(user.id);
+	if (!isAdmin) {
 		throw redirect(303, '/');
 	}
 

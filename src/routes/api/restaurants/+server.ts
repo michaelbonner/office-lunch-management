@@ -1,5 +1,6 @@
 import { db } from '$lib/server/db';
 import { restaurant } from '$lib/server/db/schema';
+import { isUserAdmin } from '$lib/server/organization';
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
@@ -11,7 +12,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		throw error(401, 'Unauthorized');
 	}
 
-	if (user.role !== 'admin') {
+	const isAdmin = await isUserAdmin(user.id);
+	if (!isAdmin) {
 		throw error(403, 'Forbidden: Admin access required');
 	}
 

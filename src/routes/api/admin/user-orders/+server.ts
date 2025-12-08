@@ -1,4 +1,5 @@
 import { db } from '$lib/server/db';
+import { isUserAdmin } from '$lib/server/organization';
 import { error, json } from '@sveltejs/kit';
 import { sql } from 'drizzle-orm';
 import type { RequestHandler } from './$types';
@@ -11,7 +12,8 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		throw error(401, 'Unauthorized');
 	}
 
-	if (user.role !== 'admin') {
+	const isAdmin = await isUserAdmin(user.id);
+	if (!isAdmin) {
 		throw error(403, 'Forbidden - Admin access required');
 	}
 

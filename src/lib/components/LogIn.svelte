@@ -2,6 +2,8 @@
 	import { authClient } from '$lib/auth-client';
 	import Button from '$lib/components/ui/button/button.svelte';
 
+	let { isAdmin = false }: { isAdmin?: boolean } = $props();
+
 	const session = authClient.useSession();
 </script>
 
@@ -10,7 +12,7 @@
 		<div class="space-y-3">
 			<div>
 				<Button variant="link" href="/orders" size="lg">My Orders</Button>
-				{#if $session.data.user.role === 'admin'}
+				{#if isAdmin}
 					<Button variant="link" href="/admin" size="lg">Admin Dashboard</Button>
 				{/if}
 			</div>

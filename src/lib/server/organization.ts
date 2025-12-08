@@ -128,3 +128,24 @@ export async function getUsersInSameOrganizations(userId: string) {
 		throw error;
 	}
 }
+
+/**
+ * Check if a user is an admin in any of their organizations
+ */
+export async function isUserAdmin(userId: string): Promise<boolean> {
+	try {
+		const adminMemberships = await db.execute<{
+			id: string;
+		}>(sql`
+			SELECT id
+			FROM member
+			WHERE "userId" = ${userId} AND role IN ('admin', 'owner')
+			LIMIT 1
+		`);
+
+		return adminMemberships.length > 0;
+	} catch (error) {
+		console.error('Error checking if user is admin:', error);
+		throw error;
+	}
+}

@@ -1,6 +1,6 @@
 import { auth } from '$lib/auth';
 import { db } from '$lib/server/db';
-import { addUserToOrganization, getUserOrganizations, getUsersInSameOrganizations } from '$lib/server/organization';
+import { addUserToOrganization, getUserOrganizations, getUsersInSameOrganizations, isUserAdmin } from '$lib/server/organization';
 import { error, json } from '@sveltejs/kit';
 import { sql } from 'drizzle-orm';
 import type { RequestHandler } from './$types';
@@ -13,7 +13,8 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		throw error(401, 'Unauthorized');
 	}
 
-	if (user.role !== 'admin') {
+	const isAdmin = await isUserAdmin(user.id);
+	if (!isAdmin) {
 		throw error(403, 'Forbidden - Admin access required');
 	}
 
@@ -112,7 +113,8 @@ export const GET: RequestHandler = async ({ locals }) => {
 		throw error(401, 'Unauthorized');
 	}
 
-	if (user.role !== 'admin') {
+	const isAdmin = await isUserAdmin(user.id);
+	if (!isAdmin) {
 		throw error(403, 'Forbidden - Admin access required');
 	}
 
