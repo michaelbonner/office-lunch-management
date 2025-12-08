@@ -1,7 +1,7 @@
 import { db } from '$lib/server/db';
 import { restaurant } from '$lib/server/db/schema';
+import { getUsersInSameOrganizations } from '$lib/server/organization';
 import { redirect } from '@sveltejs/kit';
-import { sql } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -17,17 +17,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 		throw redirect(303, '/');
 	}
 
-	// Load all users
-	const users = await db.execute<{
-		id: string;
-		email: string;
-		name: string;
-		role: string | null;
-	}>(sql`
-		SELECT id, email, name, role
-		FROM "user"
-		ORDER BY name ASC
-	`);
+	// Load users in the same organization(s)
+	const users = await getUsersInSameOrganizations(user.id);
 
 	// Load all restaurants
 	const restaurants = await db.select().from(restaurant);

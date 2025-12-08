@@ -24,18 +24,6 @@
 			</Button>
 		</div>
 	{:else}
-		<!-- <Button
-			class="cursor-pointer"
-			onclick={async () => {
-				return (
-					await authClient.signIn.social({
-						provider: 'github'
-					})
-				).data;
-			}}
-		>
-			Continue with Github
-		</Button> -->
 		<Button
 			class="cursor-pointer"
 			onclick={async () => {

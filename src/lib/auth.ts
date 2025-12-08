@@ -1,9 +1,10 @@
 import { getRequestEvent } from '$app/server';
 import { DATABASE_URL, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } from '$env/static/private';
 import { APIError, betterAuth } from 'better-auth';
-import { admin, createAuthMiddleware } from 'better-auth/plugins';
+import { admin, createAuthMiddleware, organization } from 'better-auth/plugins';
 import { sveltekitCookies } from 'better-auth/svelte-kit';
 import { Pool } from 'pg';
+import { createOrganizationForUser, getUserOrganizations } from './server/organization';
 
 export const auth = betterAuth({
 	database: new Pool({
@@ -36,6 +37,31 @@ export const auth = betterAuth({
 					message: `Sign-up restricted to specific domains. Your email domain '${userDomain}' is not allowed.`
 				});
 			}
+		}),
+		after: createAuthMiddleware(async (ctx) => {
+			// Run after OAuth sign-in or sign-up
+			if (ctx.path !== '/sign-in/social') {
+				return;
+			}
+
+			// Create organization for new users who sign up via OAuth
+			if (ctx.body && typeof ctx.body === 'object' && 'user' in ctx.body) {
+				const user = ctx.body.user as { id: string; email: string; name: string };
+				if (user?.id && user?.email) {
+					try {
+						// Check if user already has an organization
+						const existingOrgs = await getUserOrganizations(user.id);
+
+						if (existingOrgs.length === 0) {
+							// Create new organization for this user
+							await createOrganizationForUser(user.id, user.email, user.name || 'User');
+						}
+					} catch (error) {
+						console.error('Failed to create organization for user:', error);
+						// Don't fail the auth flow if organization creation fails
+					}
+				}
+			}
 		})
 	},
 	socialProviders: {
@@ -48,5 +74,9 @@ export const auth = betterAuth({
 			clientSecret: GOOGLE_CLIENT_SECRET ?? ''
 		}
 	},
-	plugins: [admin(), sveltekitCookies(getRequestEvent)] // make sure sveltekitCookies is the last plugin in the array
+	plugins: [
+		admin(),
+		organization(),
+		sveltekitCookies(getRequestEvent)
+	] // make sure sveltekitCookies is the last plugin in the array
 });
