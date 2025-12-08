@@ -2,7 +2,7 @@
 	import { authClient } from '$lib/auth-client';
 	import Button from '$lib/components/ui/button/button.svelte';
 
-	let { isAdmin = false }: { isAdmin?: boolean } = $props();
+	let { isAdmin = false, isSystemAdmin = false }: { isAdmin?: boolean; isSystemAdmin?: boolean } = $props();
 
 	const session = authClient.useSession();
 </script>
@@ -14,6 +14,9 @@
 				<Button variant="link" href="/orders" size="lg">My Lunch Orders</Button>
 				{#if isAdmin}
 					<Button variant="link" href="/admin" size="lg">Admin Dashboard</Button>
+				{/if}
+				{#if isSystemAdmin}
+					<Button variant="link" href="/admin/organizations" size="lg">All Organizations & Members</Button>
 				{/if}
 			</div>
 			<Button

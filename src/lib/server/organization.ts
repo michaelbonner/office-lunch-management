@@ -151,6 +151,28 @@ export async function isUserAdmin(userId: string): Promise<boolean> {
 }
 
 /**
+ * Check if a user is a system admin (has admin role in user table)
+ */
+export async function isUserSystemAdmin(userId: string): Promise<boolean> {
+	try {
+		const users = await db.execute<{
+			id: string;
+			role: string | null;
+		}>(sql`
+			SELECT id, role
+			FROM "user"
+			WHERE id = ${userId}
+			LIMIT 1
+		`);
+
+		return users.length > 0 && users[0].role === 'admin';
+	} catch (error) {
+		console.error('Error checking if user is system admin:', error);
+		throw error;
+	}
+}
+
+/**
  * Remove a user from organizations that the admin has access to
  */
 export async function removeUserFromSharedOrganizations(
@@ -189,6 +211,96 @@ export async function removeUserFromSharedOrganizations(
 		return orgIds.length;
 	} catch (error) {
 		console.error('Error removing user from shared organizations:', error);
+		throw error;
+	}
+}
+
+/**
+ * Get all organizations with their members (admin only)
+ */
+export async function getAllOrganizationsWithMembers() {
+	try {
+		const result = await db.execute<{
+			organizationId: string;
+			organizationName: string;
+			organizationSlug: string;
+			organizationCreatedAt: Date;
+			memberId: string | null;
+			userId: string | null;
+			userName: string | null;
+			userEmail: string | null;
+			userRole: string | null;
+			memberRole: string | null;
+			memberCreatedAt: Date | null;
+		}>(sql`
+			SELECT
+				o.id as "organizationId",
+				o.name as "organizationName",
+				o.slug as "organizationSlug",
+				o."createdAt" as "organizationCreatedAt",
+				m.id as "memberId",
+				u.id as "userId",
+				u.name as "userName",
+				u.email as "userEmail",
+				u.role as "userRole",
+				m.role as "memberRole",
+				m."createdAt" as "memberCreatedAt"
+			FROM organization o
+			LEFT JOIN member m ON m."organizationId" = o.id
+			LEFT JOIN "user" u ON u.id = m."userId"
+			ORDER BY o.name ASC, u.name ASC
+		`);
+
+		// Group by organization
+		const organizationsMap = new Map<
+			string,
+			{
+				id: string;
+				name: string;
+				slug: string;
+				createdAt: Date;
+				members: Array<{
+					memberId: string;
+					userId: string;
+					userName: string;
+					userEmail: string;
+					userRole: string | null;
+					memberRole: string;
+					memberCreatedAt: Date;
+				}>;
+			}
+		>();
+
+		for (const row of result) {
+			if (!organizationsMap.has(row.organizationId)) {
+				organizationsMap.set(row.organizationId, {
+					id: row.organizationId,
+					name: row.organizationName,
+					slug: row.organizationSlug,
+					createdAt: row.organizationCreatedAt,
+					members: []
+				});
+			}
+
+			const org = organizationsMap.get(row.organizationId)!;
+
+			// Add member if exists (LEFT JOIN might return null members)
+			if (row.userId && row.memberId) {
+				org.members.push({
+					memberId: row.memberId,
+					userId: row.userId,
+					userName: row.userName || 'Unknown',
+					userEmail: row.userEmail || '',
+					userRole: row.userRole,
+					memberRole: row.memberRole || 'member',
+					memberCreatedAt: row.memberCreatedAt || new Date()
+				});
+			}
+		}
+
+		return Array.from(organizationsMap.values());
+	} catch (error) {
+		console.error('Error getting all organizations with members:', error);
 		throw error;
 	}
 }

@@ -1,4 +1,4 @@
-import { isUserAdmin } from '$lib/server/organization';
+import { isUserAdmin, isUserSystemAdmin } from '$lib/server/organization';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -6,11 +6,14 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	// Check if user is admin
 	let isAdmin = false;
+	let isSystemAdmin = false;
 	if (user) {
 		isAdmin = await isUserAdmin(user.id);
+		isSystemAdmin = await isUserSystemAdmin(user.id);
 	}
 
 	return {
-		isAdmin
+		isAdmin,
+		isSystemAdmin
 	};
 };
