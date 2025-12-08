@@ -13,7 +13,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	}
 
 	// Load all restaurants
-	const allRestaurants = await db.select().from(restaurant);
+	const allRestaurants = await db.select().from(restaurant).orderBy(restaurant.name);
 
 	// Load user's orders
 	const userOrders = await db.select().from(order).where(eq(order.userId, user.id));

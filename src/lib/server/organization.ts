@@ -149,3 +149,46 @@ export async function isUserAdmin(userId: string): Promise<boolean> {
 		throw error;
 	}
 }
+
+/**
+ * Remove a user from organizations that the admin has access to
+ */
+export async function removeUserFromSharedOrganizations(
+	adminUserId: string,
+	targetUserId: string
+): Promise<number> {
+	try {
+		// Get organizations that both the admin and target user belong to
+		const sharedOrgs = await db.execute<{
+			organizationId: string;
+		}>(sql`
+			SELECT DISTINCT m1."organizationId"
+			FROM member m1
+			WHERE m1."organizationId" IN (
+				SELECT m2."organizationId"
+				FROM member m2
+				WHERE m2."userId" = ${adminUserId}
+			)
+			AND m1."userId" = ${targetUserId}
+		`);
+
+		if (sharedOrgs.length === 0) {
+			return 0;
+		}
+
+		// Remove the user from all shared organizations
+		const orgIds = sharedOrgs.map((org) => org.organizationId);
+
+		for (const orgId of orgIds) {
+			await db.execute(sql`
+				DELETE FROM member
+				WHERE "userId" = ${targetUserId} AND "organizationId" = ${orgId}
+			`);
+		}
+
+		return orgIds.length;
+	} catch (error) {
+		console.error('Error removing user from shared organizations:', error);
+		throw error;
+	}
+}

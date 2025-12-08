@@ -1,4 +1,3 @@
-import { auth } from '$lib/auth';
 import { db } from '$lib/server/db';
 import { addUserToOrganization, getUserOrganizations, getUsersInSameOrganizations, isUserAdmin } from '$lib/server/organization';
 import { error, json } from '@sveltejs/kit';
@@ -51,6 +50,8 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 			SELECT id, email, name, role
 			FROM "user"
 			WHERE email = ${email}
+			AND organizationId = ${adminOrgId}
+			ORDER BY "createdAt" DESC
 			LIMIT 1
 		`);
 

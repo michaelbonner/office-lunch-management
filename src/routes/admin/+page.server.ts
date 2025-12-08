@@ -19,7 +19,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	}
 
 	// Load all restaurants
-	const allRestaurants = await db.select().from(restaurant);
+	const allRestaurants = await db.select().from(restaurant).orderBy(restaurant.name);
 
 	return {
 		restaurants: allRestaurants,

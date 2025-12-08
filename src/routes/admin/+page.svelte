@@ -13,6 +13,7 @@
 	let editingRestaurantName = $state('');
 	let editingRestaurantMenuLink = $state('');
 	let restaurantError = $state('');
+	let userError = $state('');
 
 	async function refreshRestaurants() {
 		const response = await fetch('/api/restaurants');
@@ -102,6 +103,7 @@
 
 	async function loadUsers() {
 		loadingUsers = true;
+		userError = '';
 		try {
 			const response = await fetch('/api/admin/users');
 			if (response.ok) {
@@ -110,8 +112,31 @@
 			}
 		} catch (err) {
 			console.error('Failed to load users:', err);
+			userError = 'Failed to load users';
 		} finally {
 			loadingUsers = false;
+		}
+	}
+
+	async function removeUser(userId: string, userName: string) {
+		if (!confirm(`Are you sure you want to remove "${userName}" from your organization?`)) {
+			return;
+		}
+
+		try {
+			const response = await fetch(`/api/admin/users/${userId}`, {
+				method: 'DELETE'
+			});
+
+			if (!response.ok) {
+				const data = await response.json();
+				throw new Error(data.message || 'Failed to remove user');
+			}
+
+			// Remove from local state
+			users = users.filter((u) => u.id !== userId);
+		} catch (err) {
+			userError = err instanceof Error ? err.message : 'Failed to remove user';
 		}
 	}
 
@@ -286,6 +311,11 @@
 							No users found.
 						</div>
 					{:else}
+						{#if userError}
+							<div class="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+								{userError}
+							</div>
+						{/if}
 						{#each users as user}
 							<div class="rounded-lg border bg-card p-4">
 								<div class="flex items-start justify-between gap-3">
@@ -324,6 +354,29 @@
 												<path d="m15 5 4 4" />
 											</svg>
 											<span class="sr-only">Manage {user.name}'s orders</span>
+										</Button>
+										<Button
+											size="sm"
+											variant="ghost"
+											onclick={() => removeUser(user.id, user.name)}
+											class="h-8 px-2 text-destructive hover:bg-destructive/10"
+										>
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												width="14"
+												height="14"
+												viewBox="0 0 24 24"
+												fill="none"
+												stroke="currentColor"
+												stroke-width="2"
+												stroke-linecap="round"
+												stroke-linejoin="round"
+											>
+												<path d="M3 6h18" />
+												<path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+												<path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+											</svg>
+											<span class="sr-only">Remove {user.name}</span>
 										</Button>
 									</div>
 								</div>
