@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { authClient } from '$lib/auth-client';
+	import { Button } from '$lib/components/ui/button/index.js';
 
 	const session = authClient.useSession();
 </script>
@@ -10,24 +11,26 @@
 			<p>
 				{$session.data.user.name}
 			</p>
-			<button
-				on:click={async () => {
+			<Button
+				onclick={async () => {
 					await authClient.signOut();
 				}}
 			>
 				Sign Out
-			</button>
+			</Button>
 		</div>
 	{:else}
-		<button
+		<Button
 			class="cursor-pointer"
-			on:click={async () => {
-				const data = await authClient.signIn.social({
-					provider: 'github'
-				});
+			onclick={async () => {
+				return (
+					await authClient.signIn.social({
+						provider: 'github'
+					})
+				).data;
 			}}
 		>
 			Continue with Github
-		</button>
+		</Button>
 	{/if}
 </div>
