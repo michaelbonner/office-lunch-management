@@ -39,12 +39,7 @@ export const auth = betterAuth({
 			}
 		}),
 		after: createAuthMiddleware(async (ctx) => {
-			// Run after OAuth sign-in or sign-up
-			if (ctx.path !== '/sign-in/social') {
-				return;
-			}
-
-			// Create organization for new users who sign up via OAuth
+			// Create organization for new users
 			if (ctx.body && typeof ctx.body === 'object' && 'user' in ctx.body) {
 				const user = ctx.body.user as { id: string; email: string; name: string };
 				if (user?.id && user?.email) {
