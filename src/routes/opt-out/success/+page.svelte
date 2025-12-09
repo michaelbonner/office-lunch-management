@@ -27,12 +27,14 @@
 			{/if}
 		</p>
 
-		{#if isOptOut}
-			<p>
-				If this was a mistake, you can opt back in by clicking the button below.
-				<Button variant="outline" href="/api/opt-out?action=in">Opt Back In</Button>
-			</p>
-		{/if}
+		<div class="my-8 flex flex-col gap-2">
+			{#if isOptOut}
+				<p>If this was a mistake, you can opt back in by clicking the button below.</p>
+				<p>
+					<Button variant="outline" href="/api/opt-out?action=in">Opt Back In</Button>
+				</p>
+			{/if}
+		</div>
 
 		<div class="flex flex-col gap-3 sm:flex-row sm:justify-center">
 			<Button href="/orders">View My Orders</Button>
