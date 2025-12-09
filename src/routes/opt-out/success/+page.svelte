@@ -33,6 +33,11 @@
 				<p>
 					<Button variant="outline" href="/api/opt-out?action=in">Opt Back In</Button>
 				</p>
+			{:else}
+				<p>If you want to opt out again, you can do so by clicking the button below.</p>
+				<p>
+					<Button variant="outline" href="/api/opt-out?action=out">Opt Out</Button>
+				</p>
 			{/if}
 		</div>
 
