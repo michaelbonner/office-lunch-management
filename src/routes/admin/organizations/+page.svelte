@@ -2,6 +2,7 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import type { PageData } from './$types';
+	import { ChevronDown } from '@lucide/svelte';
 
 	let { data = $bindable() }: { data: PageData } = $props();
 
@@ -35,7 +36,7 @@
 	{:else}
 		<div class="space-y-4">
 			{#each organizations as org (org.id)}
-				<div class="rounded-lg border bg-card overflow-hidden">
+				<div class="overflow-hidden rounded-lg border bg-card">
 					<!-- Organization Header -->
 					<button
 						onclick={() => toggleOrganization(org.id)}
@@ -50,20 +51,7 @@
 							</div>
 						</div>
 						<div class="ml-4">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="20"
-								height="20"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								class="transition-transform {expandedOrgs.has(org.id) ? 'rotate-180' : ''}"
-							>
-								<polyline points="6 9 12 15 18 9"></polyline>
-							</svg>
+							<ChevronDown />
 						</div>
 					</button>
 

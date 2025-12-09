@@ -3,6 +3,7 @@
 	import UserForm from '$lib/components/UserForm.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import type { PageData } from './$types';
+	import { Camera, Check, List, Pencil, Trash, X } from '@lucide/svelte';
 
 	let { data = $bindable() }: { data: PageData } = $props();
 
@@ -12,6 +13,8 @@
 	let editingRestaurantId = $state<string | null>(null);
 	let editingRestaurantName = $state('');
 	let editingRestaurantMenuLink = $state('');
+	let editingUserId = $state<string | null>(null);
+	let editingUserName = $state('');
 	let restaurantError = $state('');
 	let userError = $state('');
 
@@ -140,6 +143,51 @@
 		}
 	}
 
+	function startEditingUser(user: any) {
+		editingUserId = user.id;
+		editingUserName = user.name;
+		userError = '';
+	}
+
+	function cancelEditingUser() {
+		editingUserId = null;
+		editingUserName = '';
+		userError = '';
+	}
+
+	async function saveUser(userId: string) {
+		if (!editingUserName.trim()) {
+			userError = 'Name is required';
+			return;
+		}
+
+		try {
+			const response = await fetch(`/api/admin/users/${userId}`, {
+				method: 'PATCH',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					name: editingUserName
+				})
+			});
+
+			if (!response.ok) {
+				const data = await response.json();
+				throw new Error(data.message || 'Failed to update user');
+			}
+
+			// Update the local user
+			users = users.map((u) => (u.id === userId ? { ...u, name: editingUserName } : u));
+
+			editingUserId = null;
+			editingUserName = '';
+			userError = '';
+		} catch (err) {
+			userError = err instanceof Error ? err.message : 'Failed to update user';
+		}
+	}
+
 	// Load users on mount
 	$effect(() => {
 		loadUsers();
@@ -230,22 +278,7 @@
 												variant="ghost"
 												onclick={() => startEditingRestaurant(restaurant)}
 											>
-												<svg
-													xmlns="http://www.w3.org/2000/svg"
-													width="14"
-													height="14"
-													viewBox="0 0 24 24"
-													fill="none"
-													stroke="currentColor"
-													stroke-width="2"
-													stroke-linecap="round"
-													stroke-linejoin="round"
-												>
-													<path
-														d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"
-													/>
-													<path d="m15 5 4 4" />
-												</svg>
+												<Pencil />
 												<span class="sr-only">Edit restaurant</span>
 											</Button>
 											<Button
@@ -254,21 +287,7 @@
 												onclick={() => deleteRestaurant(restaurant.id, restaurant.name)}
 												class="text-destructive hover:bg-destructive/10"
 											>
-												<svg
-													xmlns="http://www.w3.org/2000/svg"
-													width="14"
-													height="14"
-													viewBox="0 0 24 24"
-													fill="none"
-													stroke="currentColor"
-													stroke-width="2"
-													stroke-linecap="round"
-													stroke-linejoin="round"
-												>
-													<path d="M3 6h18" />
-													<path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-													<path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-												</svg>
+												<Trash color="currentColor" />
 												<span class="sr-only">Delete restaurant</span>
 											</Button>
 										</div>
@@ -318,68 +337,86 @@
 						{/if}
 						{#each users as user}
 							<div class="rounded-lg border bg-card p-4">
-								<div class="flex items-start justify-between gap-3">
-									<div class="min-w-0 flex-1">
-										<h4 class="font-medium">{user.name}</h4>
+								{#if editingUserId === user.id}
+									<!-- Edit mode -->
+									<div class="space-y-3">
+										<div class="flex items-center gap-2">
+											<input
+												type="text"
+												bind:value={editingUserName}
+												class="flex-1 rounded-md border px-3 py-2 text-sm"
+												placeholder="Name"
+											/>
+											<span
+												class="rounded-full px-2 py-1 text-xs {user.memberRole === 'admin'
+													? 'bg-primary/10 text-primary'
+													: 'bg-muted text-muted-foreground'}"
+											>
+												{user.role || 'user'}
+											</span>
+										</div>
 										<p class="text-sm text-muted-foreground">{user.email}</p>
-									</div>
-									<div class="flex shrink-0 items-center gap-2">
-										<span
-											class="rounded-full px-2 py-1 text-xs {user.memberRole === 'admin'
-												? 'bg-primary/10 text-primary'
-												: 'bg-muted text-muted-foreground'}"
-										>
-											{user.role || 'user'}
-										</span>
-										<Button
-											size="sm"
-											variant="ghost"
-											href="/admin/user-orders?userId={user.id}"
-											class="h-8 px-2"
-										>
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												width="14"
-												height="14"
-												viewBox="0 0 24 24"
-												fill="none"
-												stroke="currentColor"
-												stroke-width="2"
-												stroke-linecap="round"
-												stroke-linejoin="round"
+										<div class="flex gap-2">
+											<Button size="sm" onclick={() => saveUser(user.id)} class="flex-1">
+												<Check />
+												Save
+											</Button>
+											<Button
+												size="sm"
+												variant="outline"
+												onclick={cancelEditingUser}
+												class="flex-1"
 											>
-												<path
-													d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"
-												/>
-												<path d="m15 5 4 4" />
-											</svg>
-											<span class="sr-only">Manage {user.name}'s orders</span>
-										</Button>
-										<Button
-											size="sm"
-											variant="ghost"
-											onclick={() => removeUser(user.id, user.name)}
-											class="h-8 px-2 text-destructive hover:bg-destructive/10"
-										>
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												width="14"
-												height="14"
-												viewBox="0 0 24 24"
-												fill="none"
-												stroke="currentColor"
-												stroke-width="2"
-												stroke-linecap="round"
-												stroke-linejoin="round"
-											>
-												<path d="M3 6h18" />
-												<path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-												<path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-											</svg>
-											<span class="sr-only">Remove {user.name}</span>
-										</Button>
+												<X />
+												Cancel
+											</Button>
+										</div>
 									</div>
-								</div>
+								{:else}
+									<!-- View mode -->
+									<div class="flex items-start justify-between gap-3">
+										<div class="min-w-0 flex-1">
+											<h4 class="font-medium">{user.name}</h4>
+											<p class="text-sm text-muted-foreground">{user.email}</p>
+										</div>
+										<div class="flex shrink-0 items-center gap-2">
+											<span
+												class="rounded-full px-2 py-1 text-xs {user.memberRole === 'admin'
+													? 'bg-primary/10 text-primary'
+													: 'bg-muted text-muted-foreground'}"
+											>
+												{user.role || 'user'}
+											</span>
+											<Button
+												size="sm"
+												variant="ghost"
+												onclick={() => startEditingUser(user)}
+												class="h-8 px-2"
+											>
+												<Pencil />
+												<span class="sr-only">Edit {user.name}</span>
+											</Button>
+											<Button
+												size="sm"
+												variant="ghost"
+												href="/admin/user-orders?userId={user.id}"
+												class="h-8 px-2"
+											>
+												<List />
+												<span class="sr-only">View {user.name}'s orders</span>
+											</Button>
+											<Button
+												size="sm"
+												variant="ghost"
+												onclick={() => removeUser(user.id, user.name)}
+												class="h-8 px-2 text-destructive hover:bg-destructive/10"
+											>
+												<Trash color="currentColor" />
+												<span class="sr-only">Remove {user.name}</span>
+											</Button>
+										</div>
+									</div>
+								{/if}
 							</div>
 						{/each}
 					{/if}

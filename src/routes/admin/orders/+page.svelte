@@ -4,6 +4,7 @@
 	import { SvelteSet } from 'svelte/reactivity';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/stores';
+	import { Pencil, Plus, Trash } from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -191,9 +192,7 @@
 		}
 	}
 
-	let selectedRestaurant = $derived(
-		data.restaurants.find((r) => r.id === selectedRestaurantId)
-	);
+	let selectedRestaurant = $derived(data.restaurants.find((r) => r.id === selectedRestaurantId));
 
 	let progressText = $derived.by(() => {
 		const ordersCount = usersWithOrders.filter((u) => u.order).length;
@@ -219,20 +218,20 @@
 	});
 </script>
 
-<div class="container mx-auto px-4 py-8 max-w-4xl">
+<div class="container mx-auto max-w-4xl px-4 py-8">
 	<div class="mb-8">
-		<h1 class="text-3xl font-bold mb-2">Order Management</h1>
+		<h1 class="mb-2 text-3xl font-bold">Order Management</h1>
 		<p class="text-muted-foreground">Track orders as you enter them on restaurant sites</p>
 	</div>
 
 	<div class="mb-6">
-		<label for="restaurant-select" class="block text-sm font-medium mb-2">
+		<label for="restaurant-select" class="mb-2 block text-sm font-medium">
 			Select Restaurant
 		</label>
 		<select
 			id="restaurant-select"
 			bind:value={selectedRestaurantId}
-			class="w-full px-3 py-2 border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+			class="w-full rounded-md border bg-background px-3 py-2 focus:ring-2 focus:ring-ring focus:outline-none disabled:opacity-50"
 			disabled={loading}
 		>
 			<option value="">-- Choose a restaurant --</option>
@@ -241,19 +240,19 @@
 			{/each}
 		</select>
 		{#if loading}
-			<p class="text-sm text-muted-foreground mt-2">Loading orders...</p>
+			<p class="mt-2 text-sm text-muted-foreground">Loading orders...</p>
 		{/if}
 	</div>
 
 	{#if error}
-		<div class="p-4 rounded-md bg-destructive/10 text-destructive mb-6">
+		<div class="mb-6 rounded-md bg-destructive/10 p-4 text-destructive">
 			{error}
 		</div>
 	{/if}
 
 	{#if selectedRestaurant && usersWithOrders.length > 0}
-		<div class="border rounded-lg bg-card">
-			<div class="p-4 border-b flex items-center justify-between">
+		<div class="rounded-lg border bg-card">
+			<div class="flex items-center justify-between border-b p-4">
 				<div>
 					<h2 class="text-xl font-semibold">{selectedRestaurant.name}</h2>
 					<a
@@ -267,24 +266,22 @@
 				</div>
 				<div class="flex items-center gap-4">
 					<span class="text-sm font-medium">{progressText}</span>
-					<Button variant="outline" size="sm" onclick={resetChecks}>
-						Reset
-					</Button>
+					<Button variant="outline" size="sm" onclick={resetChecks}>Reset</Button>
 				</div>
 			</div>
 
 			<div class="divide-y">
 				{#each usersWithOrders as userWithOrder (userWithOrder.id)}
-					<div class="flex items-start gap-3 p-4 hover:bg-accent/50 transition-colors">
+					<div class="flex items-start gap-3 p-4 transition-colors hover:bg-accent/50">
 						{#if userWithOrder.order && editingOrderId === userWithOrder.order.id}
 							<!-- Edit Mode -->
-							<div class="flex-1 min-w-0 space-y-3">
+							<div class="min-w-0 flex-1 space-y-3">
 								<div class="font-medium">
 									{userWithOrder.name}
 								</div>
 								<textarea
 									bind:value={editingOrderDetails}
-									class="w-full px-3 py-2 border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring min-h-[100px]"
+									class="min-h-[100px] w-full rounded-md border bg-background px-3 py-2 focus:ring-2 focus:ring-ring focus:outline-none"
 									placeholder="Enter order details..."
 								></textarea>
 								<div class="flex gap-2">
@@ -294,23 +291,23 @@
 							</div>
 						{:else if userWithOrder.order}
 							<!-- View Mode with Order -->
-							<label class="flex items-start gap-3 flex-1 min-w-0 cursor-pointer">
+							<label class="flex min-w-0 flex-1 cursor-pointer items-start gap-3">
 								<input
 									type="checkbox"
 									checked={checkedOrders.has(userWithOrder.order.id)}
 									onchange={() => toggleOrder(userWithOrder.order.id)}
-									class="mt-1 h-5 w-5 rounded border-gray-300 cursor-pointer"
+									class="mt-1 h-5 w-5 cursor-pointer rounded border-gray-300"
 								/>
-								<div class="flex-1 min-w-0">
+								<div class="min-w-0 flex-1">
 									<div class="font-medium">
 										{userWithOrder.name}
 									</div>
-									<div class="text-sm text-muted-foreground mt-1 whitespace-pre-wrap break-words">
+									<div class="mt-1 text-sm break-words whitespace-pre-wrap text-muted-foreground">
 										{userWithOrder.order.orderDetails}
 									</div>
 								</div>
 							</label>
-							<div class="flex gap-1 shrink-0">
+							<div class="flex shrink-0 gap-1">
 								<Button
 									variant="ghost"
 									size="sm"
@@ -321,20 +318,7 @@
 									class="text-muted-foreground hover:text-primary"
 								>
 									<span class="sr-only">Edit order</span>
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										width="16"
-										height="16"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="2"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-									>
-										<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
-										<path d="m15 5 4 4" />
-									</svg>
+									<Pencil />
 								</Button>
 								<Button
 									variant="ghost"
@@ -346,31 +330,18 @@
 									class="text-muted-foreground hover:text-destructive"
 								>
 									<span class="sr-only">Remove order</span>
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										width="16"
-										height="16"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="2"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-									>
-										<path d="M18 6 6 18" />
-										<path d="m6 6 12 12" />
-									</svg>
+									<Trash />
 								</Button>
 							</div>
 						{:else if creatingOrderForUserId === userWithOrder.id}
 							<!-- Create Order Mode -->
-							<div class="flex-1 min-w-0 space-y-3">
+							<div class="min-w-0 flex-1 space-y-3">
 								<div class="font-medium">
 									{userWithOrder.name}
 								</div>
 								<textarea
 									bind:value={creatingOrderDetails}
-									class="w-full px-3 py-2 border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring min-h-[100px]"
+									class="min-h-[100px] w-full rounded-md border bg-background px-3 py-2 focus:ring-2 focus:ring-ring focus:outline-none"
 									placeholder="Enter order details..."
 								></textarea>
 								<div class="flex gap-2">
@@ -380,35 +351,19 @@
 							</div>
 						{:else}
 							<!-- No Order Yet -->
-							<div class="flex items-start justify-between gap-3 flex-1">
-								<div class="flex-1 min-w-0">
+							<div class="flex flex-1 items-start justify-between gap-3">
+								<div class="min-w-0 flex-1">
 									<div class="font-medium text-muted-foreground">
 										{userWithOrder.name}
 									</div>
-									<div class="text-sm text-muted-foreground/70 mt-1 italic">
-										No order yet
-									</div>
+									<div class="mt-1 text-sm text-muted-foreground/70 italic">No order yet</div>
 								</div>
 								<Button
 									size="sm"
 									variant="outline"
 									onclick={() => startCreatingOrder(userWithOrder.id)}
 								>
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										width="14"
-										height="14"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="2"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										class="mr-1"
-									>
-										<path d="M5 12h14" />
-										<path d="M12 5v14" />
-									</svg>
+									<Plus />
 									Add Order
 								</Button>
 							</div>
@@ -420,8 +375,6 @@
 	{/if}
 
 	<div class="mt-8">
-		<Button variant="outline" href="/admin">
-			← Back to Admin Dashboard
-		</Button>
+		<Button variant="outline" href="/admin">← Back to Admin Dashboard</Button>
 	</div>
 </div>
