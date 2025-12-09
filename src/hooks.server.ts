@@ -6,7 +6,7 @@ export async function handle({ event, resolve }) {
 	// Fetch current session from Better Auth
 	const sessionData = (await auth.api.getSession({
 		headers: event.request.headers
-	})) as (typeof auth.$Infer.Session) | null;
+	})) as typeof auth.$Infer.Session | null;
 
 	// Make session and user available on server
 	if (sessionData) {

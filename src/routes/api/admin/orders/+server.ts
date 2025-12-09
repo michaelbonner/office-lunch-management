@@ -37,7 +37,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 			})
 			.onConflictDoUpdate({
 				target: [order.userId, order.restaurantId],
-				set: { orderDetails: orderDetails.trim(), updatedAt: new Date() },
+				set: { orderDetails: orderDetails.trim(), updatedAt: new Date() }
 			})
 			.returning();
 

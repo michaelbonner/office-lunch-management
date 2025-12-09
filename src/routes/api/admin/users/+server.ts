@@ -1,5 +1,10 @@
 import { db } from '$lib/server/db';
-import { addUserToOrganization, getUserOrganizations, getUsersInSameOrganizations, isUserAdmin } from '$lib/server/organization';
+import {
+	addUserToOrganization,
+	getUserOrganizations,
+	getUsersInSameOrganizations,
+	isUserAdmin
+} from '$lib/server/organization';
 import { error, json } from '@sveltejs/kit';
 import { sql } from 'drizzle-orm';
 import type { RequestHandler } from './$types';

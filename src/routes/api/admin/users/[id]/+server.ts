@@ -1,4 +1,8 @@
-import { isUserAdmin, removeUserFromSharedOrganizations, getUsersInSameOrganizations } from '$lib/server/organization';
+import {
+	isUserAdmin,
+	removeUserFromSharedOrganizations,
+	getUsersInSameOrganizations
+} from '$lib/server/organization';
 import { db } from '$lib/server/db';
 import { error, json } from '@sveltejs/kit';
 import { sql } from 'drizzle-orm';
