@@ -83,7 +83,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 
 			await db.execute(sql`
 				INSERT INTO "user" (id, email, name, role, "emailVerified", "createdAt", "updatedAt")
-				VALUES (${userId}, ${email}, ${name}, ${userRole}, false, NOW(), NOW())
+				VALUES (${userId}, ${email}, ${name}, 'user', false, NOW(), NOW())
 			`);
 
 			// Add user to admin's organization
