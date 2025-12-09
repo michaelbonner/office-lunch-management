@@ -325,7 +325,7 @@
 									</div>
 									<div class="flex shrink-0 items-center gap-2">
 										<span
-											class="rounded-full px-2 py-1 text-xs {user.role === 'admin'
+											class="rounded-full px-2 py-1 text-xs {user.memberRole === 'admin'
 												? 'bg-primary/10 text-primary'
 												: 'bg-muted text-muted-foreground'}"
 										>

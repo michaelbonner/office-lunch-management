@@ -111,7 +111,7 @@ export async function getUsersInSameOrganizations(userId: string) {
 			role: string | null;
 			createdAt: Date;
 		}>(sql`
-			SELECT DISTINCT u.id, u.email, u.name, u.role, u."createdAt"
+			SELECT DISTINCT u.id, u.email, u.name, u.role, u."createdAt", m1.role as "memberRole"
 			FROM "user" u
 			INNER JOIN member m1 ON m1."userId" = u.id
 			WHERE m1."organizationId" IN (
