@@ -7,18 +7,12 @@ import { playwright } from '@vitest/browser-playwright';
 export default defineConfig({
 	plugins: [tailwindcss(), sveltekit(), devtoolsJson()],
 	test: {
-		browser: {
-			enabled: true,
-			provider: playwright(),
-			instances: [{ browser: 'chromium' }]
-		},
 		expect: { requireAssertions: true },
 		projects: [
 			{
 				extends: './vite.config.ts',
 				test: {
 					name: 'client',
-					environment: 'browser',
 					browser: {
 						enabled: true,
 						provider: playwright(),
