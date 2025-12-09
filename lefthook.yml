@@ -44,5 +44,5 @@
 pre-commit:
   commands:
     prettier:
-      glob: "*.{js,jsx,ts,tsx,json,css,scss,md,html,vue}" # Adjust file types as needed
+      glob: '*.{js,jsx,ts,tsx,json,css,scss,md,html,vue,svelte}' # Adjust file types as needed
       run: npx prettier --write {staged_files}
