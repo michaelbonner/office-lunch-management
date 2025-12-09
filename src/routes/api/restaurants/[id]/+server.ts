@@ -48,8 +48,7 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 			.update(restaurant)
 			.set({
 				name: name.trim(),
-				menuLink: menuLink.trim(),
-				updatedAt: new Date()
+				menuLink: menuLink.trim()
 			})
 			.where(eq(restaurant.id, restaurantId))
 			.returning();

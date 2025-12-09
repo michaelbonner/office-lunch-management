@@ -55,8 +55,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		[result] = await db
 			.update(order)
 			.set({
-				orderDetails: orderDetails.trim(),
-				updatedAt: new Date()
+				orderDetails: orderDetails.trim()
 			})
 			.where(eq(order.id, existingOrder[0].id))
 			.returning();
@@ -65,6 +64,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		[result] = await db
 			.insert(order)
 			.values({
+				id: crypto.randomUUID(),
 				userId: user.id,
 				restaurantId,
 				orderDetails: orderDetails.trim()

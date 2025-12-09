@@ -31,13 +31,14 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		const newOrder = await db
 			.insert(order)
 			.values({
+				id: crypto.randomUUID(),
 				userId,
 				restaurantId,
 				orderDetails: orderDetails.trim()
 			})
 			.onConflictDoUpdate({
 				target: [order.userId, order.restaurantId],
-				set: { orderDetails: orderDetails.trim(), updatedAt: new Date() }
+				set: { orderDetails: orderDetails.trim() }
 			})
 			.returning();
 

@@ -371,7 +371,7 @@
 												View Menu →
 											</a>
 											<div
-												class="mt-2 text-sm break-words whitespace-pre-wrap text-muted-foreground"
+												class="mt-2 text-sm wrap-break-word whitespace-pre-wrap text-muted-foreground"
 											>
 												{order.orderDetails}
 											</div>

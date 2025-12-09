@@ -332,7 +332,9 @@
 									<div class="font-medium">
 										{userWithOrder.name}
 									</div>
-									<div class="mt-1 text-sm break-words whitespace-pre-wrap text-muted-foreground">
+									<div
+										class="mt-1 text-sm wrap-break-word whitespace-pre-wrap text-muted-foreground"
+									>
 										{userWithOrder.order.orderDetails}
 									</div>
 								</div>

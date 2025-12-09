@@ -36,8 +36,7 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 		const updatedOrder = await db
 			.update(order)
 			.set({
-				orderDetails,
-				updatedAt: new Date()
+				orderDetails
 			})
 			.where(eq(order.id, orderId))
 			.returning();
