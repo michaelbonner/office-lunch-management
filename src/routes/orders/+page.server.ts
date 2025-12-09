@@ -1,7 +1,7 @@
 import { db } from '$lib/server/db';
-import { order, restaurant } from '$lib/server/db/schema';
 import { redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
+import { order, restaurant } from '../../../drizzle/schema';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {

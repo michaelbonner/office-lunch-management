@@ -1,7 +1,5 @@
-import { pgTable, foreignKey, unique, text, timestamp, boolean } from "drizzle-orm/pg-core"
-import { sql } from "drizzle-orm"
-
-
+import { sql } from "drizzle-orm";
+import { boolean, foreignKey, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
 
 export const session = pgTable("session", {
 	id: text().primaryKey().notNull(),
@@ -92,3 +90,25 @@ export const order = pgTable("order", {
 		}).onDelete("cascade"),
 	unique("order_user_id_restaurant_id_unique").on(table.userId, table.restaurantId),
 ]);
+
+
+export const optOut = pgTable(
+	'opt_out',
+	{
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		userId: text('user_id').notNull(),
+		organizationId: text('organization_id').notNull(),
+		optOutDate: text('opt_out_date').notNull(),
+		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+		updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+	},
+	(table) => [
+		foreignKey({
+			columns: [table.userId],
+			foreignColumns: [user.id],
+			name: "opt_out_userId_fkey"
+		}).onDelete("cascade"),
+	]
+);
