@@ -1,8 +1,5 @@
-import { pgTable, foreignKey, unique, text, timestamp, boolean } from "drizzle-orm/pg-core"
-import { sql } from "drizzle-orm"
-import { organization } from "better-auth/plugins/organization";
-
-
+import { sql } from "drizzle-orm";
+import { boolean, foreignKey, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
 
 export const session = pgTable("session", {
 	id: text().primaryKey().notNull(),

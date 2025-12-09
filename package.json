@@ -64,6 +64,7 @@
 	},
 	"dependencies": {
 		"better-auth": "^1.4.5",
+		"date-fns-tz": "^3.2.0",
 		"pg": "^8.16.3",
 		"postgres": "^3.4.7"
 	},

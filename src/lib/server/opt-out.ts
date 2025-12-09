@@ -1,12 +1,13 @@
+import { formatInTimeZone } from 'date-fns-tz';
+import { and, eq, sql } from 'drizzle-orm';
 import { db } from './db';
-import { sql } from 'drizzle-orm';
+import { optOut } from '../../../drizzle/schema';
 
 /**
  * Get today's date in YYYY-MM-DD format (local timezone)
  */
-export function getTodayDate(): string {
-	const now = new Date();
-	return now.toISOString().split('T')[0];
+export function getTodayDate(timezone: string = 'America/Denver'): string {
+	return formatInTimeZone(new Date(), timezone, 'yyyy-MM-dd');
 }
 
 /**
@@ -61,19 +62,13 @@ export async function isUserOptedOut(
 	userId: string,
 	date: string = getTodayDate()
 ): Promise<boolean> {
-	try {
-		const result = await db.execute<{ id: string }>(sql`
-			SELECT id
-			FROM opt_out
-			WHERE user_id = ${userId} AND opt_out_date = ${date}
-			LIMIT 1
-		`);
+	const result = await db
+		.select({ id: optOut.id })
+		.from(optOut)
+		.where(and(eq(optOut.userId, userId), eq(optOut.optOutDate, date)))
+		.limit(1);
 
-		return result.length > 0;
-	} catch (error) {
-		console.error('Error checking if user is opted out:', error);
-		throw error;
-	}
+	return result.length > 0;
 }
 
 /**
