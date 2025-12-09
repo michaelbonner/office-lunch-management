@@ -27,6 +27,13 @@
 			{/if}
 		</p>
 
+		{#if isOptOut}
+			<p>
+				If this was a mistake, you can opt back in by clicking the button below.
+				<Button variant="outline" href="/api/opt-out?action=in">Opt Back In</Button>
+			</p>
+		{/if}
+
 		<div class="flex flex-col gap-3 sm:flex-row sm:justify-center">
 			<Button href="/orders">View My Orders</Button>
 			<Button variant="outline" href="/">Back to Home</Button>
