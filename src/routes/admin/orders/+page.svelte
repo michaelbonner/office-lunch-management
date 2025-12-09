@@ -256,7 +256,7 @@
 				<div>
 					<h2 class="text-xl font-semibold">{selectedRestaurant.name}</h2>
 					<a
-						href={resolve(selectedRestaurant.menuLink)}
+						href={selectedRestaurant.menuLink}
 						target="_blank"
 						rel="noopener noreferrer"
 						class="text-sm text-primary hover:underline"
@@ -285,7 +285,7 @@
 									placeholder="Enter order details..."
 								></textarea>
 								<div class="flex gap-2">
-									<Button size="sm" onclick={() => saveOrder(userWithOrder.order.id)}>Save</Button>
+									<Button size="sm" onclick={() => saveOrder(userWithOrder.order!.id)}>Save</Button>
 									<Button size="sm" variant="outline" onclick={cancelEditing}>Cancel</Button>
 								</div>
 							</div>
@@ -295,7 +295,7 @@
 								<input
 									type="checkbox"
 									checked={checkedOrders.has(userWithOrder.order.id)}
-									onchange={() => toggleOrder(userWithOrder.order.id)}
+									onchange={() => toggleOrder(userWithOrder.order!.id)}
 									class="mt-1 h-5 w-5 cursor-pointer rounded border-gray-300"
 								/>
 								<div class="min-w-0 flex-1">
@@ -313,7 +313,7 @@
 									size="sm"
 									onclick={(e) => {
 										e.preventDefault();
-										startEditing(userWithOrder.order);
+										startEditing(userWithOrder.order!);
 									}}
 									class="text-muted-foreground hover:text-primary"
 								>
@@ -325,7 +325,7 @@
 									size="sm"
 									onclick={(e) => {
 										e.preventDefault();
-										removeOrder(userWithOrder.order.id);
+										removeOrder(userWithOrder.order!.id);
 									}}
 									class="text-muted-foreground hover:text-destructive"
 								>
