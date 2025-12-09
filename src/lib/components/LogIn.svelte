@@ -12,7 +12,7 @@
 	{#if $session.data}
 		<div class="space-y-3">
 			<div>
-				<Button variant="link" href="/orders" size="lg">My Lunch Orders</Button>
+				<Button variant="link" href="/orders" size="lg">My Lunch Order Preferences</Button>
 				{#if isAdmin}
 					<Button variant="link" href="/admin" size="lg">Admin Dashboard</Button>
 				{/if}

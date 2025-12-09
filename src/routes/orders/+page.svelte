@@ -16,7 +16,7 @@
 
 <div class="container mx-auto max-w-4xl px-4 py-8">
 	<div class="mb-8">
-		<h1 class="mb-2 text-3xl font-bold">My Lunch Orders</h1>
+		<h1 class="mb-2 text-3xl font-bold">My Lunch Order Preferences</h1>
 		<p class="text-muted-foreground">
 			Save your preferred lunch orders for each restaurant. View the menu first to decide what you
 			want!

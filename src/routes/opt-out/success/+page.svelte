@@ -42,7 +42,7 @@
 		</div>
 
 		<div class="flex flex-col gap-3 sm:flex-row sm:justify-center">
-			<Button href="/orders">View My Orders</Button>
+			<Button href="/orders">View My Order Preferences</Button>
 			<Button variant="outline" href="/">Back to Home</Button>
 		</div>
 	</div>
