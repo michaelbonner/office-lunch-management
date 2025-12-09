@@ -1,16 +1,26 @@
 import { relations } from "drizzle-orm/relations";
-import { user, session, account, restaurant, order } from "./schema";
+import { user, optOut, session, account, restaurant, order, organization, member, invitation } from "./schema";
+
+export const optOutRelations = relations(optOut, ({one}) => ({
+	user: one(user, {
+		fields: [optOut.userId],
+		references: [user.id]
+	}),
+}));
+
+export const userRelations = relations(user, ({many}) => ({
+	optOuts: many(optOut),
+	sessions: many(session),
+	accounts: many(account),
+	members: many(member),
+	invitations: many(invitation),
+}));
 
 export const sessionRelations = relations(session, ({one}) => ({
 	user: one(user, {
 		fields: [session.userId],
 		references: [user.id]
 	}),
-}));
-
-export const userRelations = relations(user, ({many}) => ({
-	sessions: many(session),
-	accounts: many(account),
 }));
 
 export const accountRelations = relations(account, ({one}) => ({
@@ -29,4 +39,31 @@ export const orderRelations = relations(order, ({one}) => ({
 
 export const restaurantRelations = relations(restaurant, ({many}) => ({
 	orders: many(order),
+}));
+
+export const memberRelations = relations(member, ({one}) => ({
+	organization: one(organization, {
+		fields: [member.organizationId],
+		references: [organization.id]
+	}),
+	user: one(user, {
+		fields: [member.userId],
+		references: [user.id]
+	}),
+}));
+
+export const organizationRelations = relations(organization, ({many}) => ({
+	members: many(member),
+	invitations: many(invitation),
+}));
+
+export const invitationRelations = relations(invitation, ({one}) => ({
+	organization: one(organization, {
+		fields: [invitation.organizationId],
+		references: [organization.id]
+	}),
+	user: one(user, {
+		fields: [invitation.inviterId],
+		references: [user.id]
+	}),
 }));

@@ -1,5 +1,23 @@
-import { sql } from "drizzle-orm";
-import { boolean, foreignKey, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
+import { pgTable, foreignKey, unique, text, timestamp, boolean, index } from "drizzle-orm/pg-core"
+import { sql } from "drizzle-orm"
+
+
+
+export const optOut = pgTable("opt_out", {
+	id: text().primaryKey().notNull(),
+	userId: text("user_id").notNull(),
+	organizationId: text("organization_id").notNull(),
+	optOutDate: text("opt_out_date").notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	foreignKey({
+			columns: [table.userId],
+			foreignColumns: [user.id],
+			name: "opt_out_userId_fkey"
+		}).onDelete("cascade"),
+	unique("opt_out_user_id_organization_id_opt_out_date_unique").on(table.userId, table.organizationId, table.optOutDate),
+]);
 
 export const session = pgTable("session", {
 	id: text().primaryKey().notNull(),
@@ -11,6 +29,7 @@ export const session = pgTable("session", {
 	userAgent: text(),
 	userId: text().notNull(),
 	impersonatedBy: text(),
+	activeOrganizationId: text(),
 }, (table) => [
 	foreignKey({
 			columns: [table.userId],
@@ -91,24 +110,58 @@ export const order = pgTable("order", {
 	unique("order_user_id_restaurant_id_unique").on(table.userId, table.restaurantId),
 ]);
 
+export const organization = pgTable("organization", {
+	id: text().primaryKey().notNull(),
+	name: text().notNull(),
+	slug: text().notNull(),
+	logo: text(),
+	createdAt: timestamp({ withTimezone: true, mode: 'string' }).notNull(),
+	metadata: text(),
+}, (table) => [
+	unique("organization_slug_key").on(table.slug),
+]);
 
-export const optOut = pgTable(
-	'opt_out',
-	{
-		id: text('id')
-			.primaryKey()
-			.$defaultFn(() => crypto.randomUUID()),
-		userId: text('user_id').notNull(),
-		organizationId: text('organization_id').notNull(),
-		optOutDate: text('opt_out_date').notNull(),
-		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-		updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
-	},
-	(table) => [
-		foreignKey({
+export const member = pgTable("member", {
+	id: text().primaryKey().notNull(),
+	organizationId: text().notNull(),
+	userId: text().notNull(),
+	role: text().notNull(),
+	createdAt: timestamp({ withTimezone: true, mode: 'string' }).notNull(),
+}, (table) => [
+	index("member_organizationId_idx").using("btree", table.organizationId.asc().nullsLast().op("text_ops")),
+	index("member_userId_idx").using("btree", table.userId.asc().nullsLast().op("text_ops")),
+	foreignKey({
+			columns: [table.organizationId],
+			foreignColumns: [organization.id],
+			name: "member_organizationId_fkey"
+		}).onDelete("cascade"),
+	foreignKey({
 			columns: [table.userId],
 			foreignColumns: [user.id],
-			name: "opt_out_userId_fkey"
+			name: "member_userId_fkey"
 		}).onDelete("cascade"),
-	]
-);
+]);
+
+export const invitation = pgTable("invitation", {
+	id: text().primaryKey().notNull(),
+	organizationId: text().notNull(),
+	email: text().notNull(),
+	role: text(),
+	status: text().notNull(),
+	expiresAt: timestamp({ withTimezone: true, mode: 'string' }).notNull(),
+	createdAt: timestamp({ withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	inviterId: text().notNull(),
+}, (table) => [
+	index("invitation_email_idx").using("btree", table.email.asc().nullsLast().op("text_ops")),
+	index("invitation_organizationId_idx").using("btree", table.organizationId.asc().nullsLast().op("text_ops")),
+	foreignKey({
+			columns: [table.organizationId],
+			foreignColumns: [organization.id],
+			name: "invitation_organizationId_fkey"
+		}).onDelete("cascade"),
+	foreignKey({
+			columns: [table.inviterId],
+			foreignColumns: [user.id],
+			name: "invitation_inviterId_fkey"
+		}).onDelete("cascade"),
+]);

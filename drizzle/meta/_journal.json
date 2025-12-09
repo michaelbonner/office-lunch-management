@@ -29,6 +29,13 @@
       "when": 1765309900474,
       "tag": "0003_left_spencer_smythe",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1765312359990,
+      "tag": "0004_abandoned_the_captain",
+      "breakpoints": true
     }
   ]
 }
