@@ -40,6 +40,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const [newRestaurant] = await db
 		.insert(restaurant)
 		.values({
+			id: crypto.randomUUID(),
 			name: name.trim(),
 			menuLink: menuLink.trim()
 		})
