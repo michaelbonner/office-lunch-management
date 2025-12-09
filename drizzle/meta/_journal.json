@@ -15,6 +15,20 @@
       "when": 1765164335628,
       "tag": "0001_absurd_nebula",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1765308587963,
+      "tag": "0002_gifted_eternals",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1765309900474,
+      "tag": "0003_left_spencer_smythe",
+      "breakpoints": true
     }
   ]
 }

@@ -28,6 +28,13 @@
 		order: Order | null;
 	};
 
+	type OptedOutUser = {
+		id: string;
+		email: string;
+		name: string;
+		createdAt: Date;
+	};
+
 	let selectedRestaurantId = $state<string>('');
 	let orders = $state<Order[]>([]);
 	let checkedOrders = new SvelteSet<string>();
@@ -38,18 +45,41 @@
 	let creatingOrderForUserId = $state<string | null>(null);
 	let creatingOrderDetails = $state('');
 
-	// Merge users with their orders
-	let usersWithOrders = $derived(
+	// Create Set of opted-out user IDs for fast lookup
+	let optedOutUserIds = $derived(new Set(data.optedOutUsers.map((u) => u.id)));
+
+	// Split users into regular and opted-out lists
+	let regularUsersWithOrders = $derived(
 		selectedRestaurantId
-			? data.users.map((user) => {
-					const order = orders.find((o) => o.userId === user.id);
-					return {
-						id: user.id,
-						name: user.name,
-						email: user.email,
-						order: order || null
-					};
-				})
+			? data.users
+					.filter((user) => !optedOutUserIds.has(user.id))
+					.map((user) => {
+						const order = orders.find((o) => o.userId === user.id);
+						return {
+							id: user.id,
+							name: user.name,
+							email: user.email,
+							order: order || null
+						};
+					})
+			: []
+	);
+
+	let optedOutUsersWithOrders = $derived(
+		selectedRestaurantId
+			? data.users
+					.filter((user) => optedOutUserIds.has(user.id))
+					.map((user) => {
+						const order = orders.find((o) => o.userId === user.id);
+						const optOutInfo = data.optedOutUsers.find((u) => u.id === user.id);
+						return {
+							id: user.id,
+							name: user.name,
+							email: user.email,
+							order: order || null,
+							optedOutAt: optOutInfo?.createdAt
+						};
+					})
 			: []
 	);
 
@@ -195,7 +225,7 @@
 	let selectedRestaurant = $derived(data.restaurants.find((r) => r.id === selectedRestaurantId));
 
 	let progressText = $derived.by(() => {
-		const ordersCount = usersWithOrders.filter((u) => u.order).length;
+		const ordersCount = regularUsersWithOrders.filter((u) => u.order).length;
 		return ordersCount > 0 ? `${checkedOrders.size} of ${ordersCount} entered` : '';
 	});
 
@@ -250,7 +280,7 @@
 		</div>
 	{/if}
 
-	{#if selectedRestaurant && usersWithOrders.length > 0}
+	{#if selectedRestaurant && regularUsersWithOrders.length > 0}
 		<div class="rounded-lg border bg-card">
 			<div class="flex items-center justify-between border-b p-4">
 				<div>
@@ -271,7 +301,7 @@
 			</div>
 
 			<div class="divide-y">
-				{#each usersWithOrders as userWithOrder (userWithOrder.id)}
+				{#each regularUsersWithOrders as userWithOrder (userWithOrder.id)}
 					<div class="flex items-start gap-3 p-4 transition-colors hover:bg-accent/50">
 						{#if userWithOrder.order && editingOrderId === userWithOrder.order.id}
 							<!-- Edit Mode -->
@@ -368,6 +398,35 @@
 								</Button>
 							</div>
 						{/if}
+					</div>
+				{/each}
+			</div>
+		</div>
+	{/if}
+
+	<!-- Opted Out Section -->
+	{#if optedOutUsersWithOrders.length > 0}
+		<div class="mt-8 rounded-lg border bg-card">
+			<div class="border-b bg-muted/50 p-4">
+				<h3 class="font-semibold text-muted-foreground">
+					Opted Out Today ({optedOutUsersWithOrders.length})
+				</h3>
+			</div>
+			<div class="divide-y">
+				{#each optedOutUsersWithOrders as user (user.id)}
+					<div class="flex items-center justify-between p-4 opacity-60">
+						<div>
+							<div class="font-medium">{user.name}</div>
+							<div class="text-sm text-muted-foreground">{user.email}</div>
+						</div>
+						<div class="text-sm text-muted-foreground">
+							{#if user.optedOutAt}
+								Opted out at {new Date(user.optedOutAt).toLocaleTimeString('en-US', {
+									hour: 'numeric',
+									minute: '2-digit'
+								})}
+							{/if}
+						</div>
 					</div>
 				{/each}
 			</div>

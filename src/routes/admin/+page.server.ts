@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db';
-import { restaurant } from '$lib/server/db/schema';
+import { restaurant } from '../../../drizzle/schema';
 import { isUserAdmin } from '$lib/server/organization';
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';

@@ -1,8 +1,8 @@
 import { db } from '$lib/server/db';
-import { restaurant } from '$lib/server/db/schema';
 import { getUsersInSameOrganizations, isUserAdmin } from '$lib/server/organization';
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
+import { restaurant } from '../../../../drizzle/schema';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const user = locals.user;

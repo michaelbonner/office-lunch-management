@@ -1,8 +1,8 @@
 import { db } from '$lib/server/db';
-import { restaurant } from '$lib/server/db/schema';
 import { isUserAdmin } from '$lib/server/organization';
 import { error, json } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
+import { restaurant } from '../../../../../drizzle/schema';
 import type { RequestHandler } from './$types';
 
 export const PATCH: RequestHandler = async ({ locals, params, request }) => {

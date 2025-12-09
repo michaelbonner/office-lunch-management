@@ -1,9 +1,9 @@
 import { db } from '$lib/server/db';
-import { order } from '$lib/server/db/schema';
 import { isUserAdmin } from '$lib/server/organization';
 import { error, json } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import type { RequestHandler } from './$types';
+import { order } from '../../../../../../drizzle/schema';
 
 export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	const user = locals.user;
