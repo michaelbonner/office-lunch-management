@@ -50,8 +50,6 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 			SELECT id, email, name, role
 			FROM "user"
 			WHERE email = ${email}
-			AND organizationId = ${adminOrgId}
-			ORDER BY "createdAt" DESC
 			LIMIT 1
 		`);
 
@@ -59,11 +57,10 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		let message: string;
 
 		if (existingUsers.length > 0) {
-			// User exists, just add them to the organization
+			// User exists, check if they're already in this organization
 			const existingUser = existingUsers[0];
 			userId = existingUser.id;
 
-			// Check if they're already in this organization
 			const existingMembership = await db.execute<{
 				id: string;
 			}>(sql`
