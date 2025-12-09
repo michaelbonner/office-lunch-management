@@ -1,6 +1,6 @@
 <script lang="ts">
-	import Button from '$lib/components/ui/button/button.svelte';
 	import { page } from '$app/stores';
+	import Button from '$lib/components/ui/button/button.svelte';
 	import { Check } from '@lucide/svelte';
 
 	const action = $page.url.searchParams.get('action');

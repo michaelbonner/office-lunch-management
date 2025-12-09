@@ -1,7 +1,7 @@
+import { optOut } from '../../../drizzle/schema';
+import { db } from './db';
 import { formatInTimeZone } from 'date-fns-tz';
 import { and, eq, sql } from 'drizzle-orm';
-import { db } from './db';
-import { optOut } from '../../../drizzle/schema';
 
 /**
  * Get today's date in YYYY-MM-DD format (local timezone)

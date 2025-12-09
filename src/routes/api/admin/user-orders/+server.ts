@@ -1,8 +1,8 @@
 import { db } from '$lib/server/db';
 import { isUserAdmin } from '$lib/server/organization';
+import type { RequestHandler } from './$types';
 import { error, json } from '@sveltejs/kit';
 import { sql } from 'drizzle-orm';
-import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ locals, url }) => {
 	const user = locals.user;

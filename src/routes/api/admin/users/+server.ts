@@ -5,9 +5,9 @@ import {
 	getUsersInSameOrganizations,
 	isUserAdmin
 } from '$lib/server/organization';
+import type { RequestHandler } from './$types';
 import { error, json } from '@sveltejs/kit';
 import { sql } from 'drizzle-orm';
-import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ locals, request }) => {
 	const user = locals.user;

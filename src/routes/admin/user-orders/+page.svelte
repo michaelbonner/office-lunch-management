@@ -1,6 +1,6 @@
 <script lang="ts">
-	import Button from '$lib/components/ui/button/button.svelte';
 	import { page } from '$app/stores';
+	import Button from '$lib/components/ui/button/button.svelte';
 	import type { PageData } from './$types';
 	import { Pencil, Plus, Trash } from '@lucide/svelte';
 

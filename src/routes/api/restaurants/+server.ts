@@ -1,8 +1,8 @@
 import { db } from '$lib/server/db';
 import { isUserAdmin } from '$lib/server/organization';
-import { error, json } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
 import { restaurant } from '../../../../drizzle/schema';
+import type { RequestHandler } from './$types';
+import { error, json } from '@sveltejs/kit';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	// Check if user is authenticated and is an admin

@@ -1,8 +1,8 @@
 import { db } from '$lib/server/db';
+import { order } from '../../../../drizzle/schema';
+import type { RequestHandler } from './$types';
 import { error, json } from '@sveltejs/kit';
 import { eq, and } from 'drizzle-orm';
-import type { RequestHandler } from './$types';
-import { order } from '../../../../drizzle/schema';
 
 export const GET: RequestHandler = async ({ locals, url }) => {
 	const user = locals.user;

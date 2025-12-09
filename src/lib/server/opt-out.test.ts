@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import { getTodayDate } from './opt-out';
+import { describe, expect, it } from 'vitest';
 
 describe('opt-out functionality', () => {
 	it("should return today's date in YYYY-MM-DD format", () => {

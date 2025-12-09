@@ -1,12 +1,12 @@
+import { db } from '$lib/server/db';
 import {
 	isUserAdmin,
 	removeUserFromSharedOrganizations,
 	getUsersInSameOrganizations
 } from '$lib/server/organization';
-import { db } from '$lib/server/db';
+import type { RequestHandler } from './$types';
 import { error, json } from '@sveltejs/kit';
 import { sql } from 'drizzle-orm';
-import type { RequestHandler } from './$types';
 
 export const DELETE: RequestHandler = async ({ locals, params }) => {
 	const user = locals.user;

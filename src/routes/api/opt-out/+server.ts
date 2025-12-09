@@ -1,6 +1,6 @@
-import { error, redirect } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
 import { optUserOut, optUserIn, getTodayDate } from '$lib/server/opt-out';
+import type { RequestHandler } from './$types';
+import { error, redirect } from '@sveltejs/kit';
 
 export const GET: RequestHandler = async ({ locals, url }) => {
 	const user = locals.user;

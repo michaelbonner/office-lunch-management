@@ -1,9 +1,9 @@
 import { db } from '$lib/server/db';
-import { getUsersInSameOrganizations, isUserAdmin } from '$lib/server/organization';
 import { getOptedOutUsers, getTodayDate } from '$lib/server/opt-out';
-import { redirect } from '@sveltejs/kit';
-import type { PageServerLoad } from './$types';
+import { getUsersInSameOrganizations, isUserAdmin } from '$lib/server/organization';
 import { restaurant } from '../../../../drizzle/schema';
+import type { PageServerLoad } from './$types';
+import { redirect } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const user = locals.user;
