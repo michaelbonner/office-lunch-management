@@ -1,7 +1,7 @@
 {
 	"mcpServers": {
 		"svelte": {
-			"command": "npx",
+			"command": "bunx",
 			"args": ["-y", "@sveltejs/mcp"]
 		}
 	}

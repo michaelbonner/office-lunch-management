@@ -2,7 +2,7 @@
 	"mcpServers": {
 		"svelte": {
 			"type": "stdio",
-			"command": "npx",
+			"command": "bunx",
 			"args": ["-y", "@sveltejs/mcp"],
 			"env": {}
 		}
