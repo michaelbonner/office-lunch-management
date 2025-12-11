@@ -3,7 +3,7 @@
 	import UserForm from '$lib/components/UserForm.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import type { PageData } from './$types';
-	import { Camera, Check, List, Pencil, Trash, X } from '@lucide/svelte';
+	import { Utensils, Check, List, Pencil, Trash, X } from '@lucide/svelte';
 
 	let { data = $bindable() }: { data: PageData } = $props();
 
@@ -261,15 +261,16 @@
 								<!-- View Mode -->
 								<div class="space-y-3">
 									<div class="flex items-start justify-between gap-3">
-										<div class="min-w-0 flex-1">
+										<div class="min-w-0 flex-1 justify-start">
 											<h3 class="mb-2 font-medium">{restaurant.name}</h3>
 											<a
 												href={restaurant.menuLink}
 												target="_blank"
 												rel="noopener noreferrer"
-												class="text-sm break-all text-primary hover:underline"
+												class="text-sm break-all text-primary hover:underline flex items-center gap-1"
 											>
-												View Menu →
+												<Utensils size={16} />
+												<span> View Menu </span>
 											</a>
 										</div>
 										<div class="flex shrink-0 gap-1">

@@ -2,6 +2,7 @@
 	import OrderForm from '$lib/components/OrderForm.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import type { PageData } from './$types';
+	import { Utensils } from '@lucide/svelte';
 
 	let { data = $bindable() }: { data: PageData } = $props();
 
@@ -34,15 +35,16 @@
 		<div class="space-y-4">
 			{#each data.restaurants as restaurant}
 				<div class="space-y-2">
-					<div class="flex items-center justify-between">
+					<div class="flex items-center justify-start gap-3">
 						<h3 class="font-medium">{restaurant.name}</h3>
 						<a
 							href={restaurant.menuLink}
 							target="_blank"
 							rel="noopener noreferrer"
-							class="text-sm text-primary hover:underline"
+							class="text-sm text-primary hover:underline flex items-center gap-1"
 						>
-							View Menu →
+							<Utensils size={16} />
+							<span> View Menu </span>
 						</a>
 					</div>
 					<OrderForm

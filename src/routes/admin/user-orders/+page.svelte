@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import type { PageData } from './$types';
-	import { Pencil, Plus, Trash } from '@lucide/svelte';
+	import { Pencil, Plus, Trash, Utensils } from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -290,9 +290,10 @@
 								href={selectedRestaurant.menuLink}
 								target="_blank"
 								rel="noopener noreferrer"
-								class="inline-block text-sm text-primary hover:underline"
+								class="text-sm text-primary hover:underline inline-flex items-center gap-1"
 							>
-								View Menu →
+								<Utensils size={16} />
+								<span> View Menu </span>
 							</a>
 						{/if}
 					{/if}
@@ -337,9 +338,10 @@
 												href={order.restaurant.menuLink}
 												target="_blank"
 												rel="noopener noreferrer"
-												class="text-xs text-primary hover:underline"
+												class="text-xs text-primary hover:underline inline-flex items-center gap-1"
 											>
-												View Menu →
+												<Utensils size={16} />
+												<span> View Menu </span>
 											</a>
 										</div>
 										<span class="text-xs text-muted-foreground">
@@ -366,9 +368,10 @@
 												href={order.restaurant.menuLink}
 												target="_blank"
 												rel="noopener noreferrer"
-												class="text-xs text-primary hover:underline"
+												class="text-xs text-primary hover:underline inline-flex items-center gap-1"
 											>
-												View Menu →
+												<Utensils size={16} />
+												<span> View Menu </span>
 											</a>
 											<div
 												class="mt-2 text-sm wrap-break-word whitespace-pre-wrap text-muted-foreground"
