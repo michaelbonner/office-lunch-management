@@ -25,7 +25,7 @@
 	"devDependencies": {
 		"@eslint/compat": "^2.0.0",
 		"@eslint/js": "^9.39.2",
-		"@lucide/svelte": "^0.556.0",
+		"@lucide/svelte": "^0.561.0",
 		"@playwright/test": "^1.57.0",
 		"@sveltejs/adapter-node": "^5.4.0",
 		"@sveltejs/kit": "^2.49.2",
@@ -34,7 +34,7 @@
 		"@tailwindcss/typography": "^0.5.19",
 		"@tailwindcss/vite": "^4.1.18",
 		"@trivago/prettier-plugin-sort-imports": "^6.0.0",
-		"@types/node": "^24.10.3",
+		"@types/node": "^25.0.1",
 		"@types/pg": "^8.16.0",
 		"@vitest/browser": "^4.0.15",
 		"@vitest/browser-playwright": "^4.0.15",
