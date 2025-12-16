@@ -45,6 +45,12 @@ export const auth = betterAuth({
 			}
 		}),
 		after: createAuthMiddleware(async (ctx) => {
+			// Only create organizations for new sign-ups, not on every auth operation
+			// This prevents the hook from running on login, session refresh, etc.
+			if (!ctx.path || (!ctx.path.includes('/sign-up') && !ctx.path.includes('/callback'))) {
+				return;
+			}
+
 			// Create organization for new users
 			if (ctx.body && typeof ctx.body === 'object' && 'user' in ctx.body) {
 				const user = ctx.body.user as { id: string; email: string; name: string };
