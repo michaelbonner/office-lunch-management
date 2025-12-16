@@ -209,7 +209,7 @@
 		</div>
 
 		<div>
-			<h2 class="mb-4 text-xl font-semibold">Existing Restaurants</h2>
+			<h2 class="mb-4 text-xl font-semibold">Existing Restaurants ({restaurants.length})</h2>
 			<div class="max-h-[420px] space-y-3 overflow-y-auto">
 				{#if restaurants.length === 0}
 					<div class="rounded-lg border bg-card p-6 text-center text-muted-foreground">
@@ -320,7 +320,7 @@
 			</div>
 
 			<div>
-				<h3 class="mb-4 text-xl font-semibold">Existing Users</h3>
+				<h3 class="mb-4 text-xl font-semibold">Existing Users ({users.length})</h3>
 				<div class="max-h-[420px] space-y-3 overflow-y-auto">
 					{#if loadingUsers}
 						<div class="rounded-lg border bg-card p-6 text-center text-muted-foreground">
