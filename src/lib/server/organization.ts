@@ -109,6 +109,7 @@ export async function getUsersInSameOrganizations(userId: string) {
 			email: string;
 			name: string;
 			role: string | null;
+			memberRole: string | null;
 			createdAt: Date;
 		}>(sql`
 			SELECT DISTINCT u.id, u.email, u.name, u.role, u."createdAt", m1.role as "memberRole"
@@ -301,6 +302,65 @@ export async function getAllOrganizationsWithMembers() {
 		return Array.from(organizationsMap.values());
 	} catch (error) {
 		console.error('Error getting all organizations with members:', error);
+		throw error;
+	}
+}
+
+/**
+ * Update a user's role in organizations shared with the admin
+ */
+export async function updateUserRoleInSharedOrganizations(
+	adminUserId: string,
+	targetUserId: string,
+	newRole: 'admin' | 'member'
+): Promise<number> {
+	try {
+		// Get organizations where admin is admin/owner AND target user is a member
+		const sharedOrgs = await db.execute<{
+			organizationId: string;
+		}>(sql`
+			SELECT DISTINCT m1."organizationId"
+			FROM member m1
+			JOIN member m2 ON m2."organizationId" = m1."organizationId"
+			WHERE m1."userId" = ${targetUserId}
+			AND m2."userId" = ${adminUserId}
+			AND m2.role IN ('admin', 'owner')
+		`);
+
+		if (sharedOrgs.length === 0) {
+			return 0;
+		}
+
+		const orgIds = sharedOrgs.map((org) => org.organizationId);
+
+		// Update role in these organizations
+		// Don't update if the user is the owner (unless specific logic required, but usually owners are special)
+		// For now, let's assume we update any non-owner role, or allow updating admins.
+		// Safe bet: don't downgrade an owner.
+
+		let updatedCount = 0;
+
+		for (const orgId of orgIds) {
+			// Check if target is owner in this org
+			const targetMember = await db.execute<{ role: string }>(sql`
+                SELECT role FROM member WHERE "userId" = ${targetUserId} AND "organizationId" = ${orgId}
+            `);
+
+			if (targetMember.length > 0 && targetMember[0].role === 'owner') {
+				continue; // Skip updating owner
+			}
+
+			await db.execute(sql`
+				UPDATE member
+				SET role = ${newRole}
+				WHERE "userId" = ${targetUserId} AND "organizationId" = ${orgId}
+			`);
+			updatedCount++;
+		}
+
+		return updatedCount;
+	} catch (error) {
+		console.error('Error updating user role in shared organizations:', error);
 		throw error;
 	}
 }

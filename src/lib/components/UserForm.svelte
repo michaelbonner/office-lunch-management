@@ -9,7 +9,7 @@
 
 	let name = $state('');
 	let email = $state('');
-	let role = $state<'user' | 'admin'>('user');
+	let role = $state<'member' | 'admin'>('member');
 	let loading = $state(false);
 	let error = $state('');
 	let success = $state(false);
@@ -37,7 +37,7 @@
 			success = true;
 			name = '';
 			email = '';
-			role = 'user';
+			role = 'member';
 
 			if (onSuccess) {
 				onSuccess();
@@ -86,7 +86,7 @@
 			disabled={loading}
 			class="w-full rounded-md border bg-background px-3 py-2 focus:ring-2 focus:ring-ring focus:outline-none disabled:opacity-50"
 		>
-			<option value="user">User</option>
+			<option value="member">Member</option>
 			<option value="admin">Admin</option>
 		</select>
 	</div>

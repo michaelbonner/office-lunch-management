@@ -79,6 +79,8 @@
 		"words": [
 			"conname",
 			"fkey",
+			"mysecretpassword",
+			"signup",
 			"Stylesheet",
 			"trivago"
 		],

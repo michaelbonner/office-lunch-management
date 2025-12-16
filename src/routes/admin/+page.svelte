@@ -26,6 +26,7 @@
 	// Editing State - Users
 	let editingUserId = $state<string | null>(null);
 	let editingUserName = $state('');
+	let editingUserRole = $state('member');
 	let userError = $state('');
 
 	// Derived
@@ -169,12 +170,14 @@
 	function startEditingUser(user: any) {
 		editingUserId = user.id;
 		editingUserName = user.name;
+		editingUserRole = user.memberRole || 'member';
 		userError = '';
 	}
 
 	function cancelEditingUser() {
 		editingUserId = null;
 		editingUserName = '';
+		editingUserRole = 'member';
 		userError = '';
 	}
 
@@ -191,7 +194,8 @@
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({
-					name: editingUserName
+					name: editingUserName,
+					role: editingUserRole
 				})
 			});
 
@@ -201,10 +205,13 @@
 			}
 
 			// Update the local user
-			users = users.map((u) => (u.id === userId ? { ...u, name: editingUserName } : u));
+			users = users.map((u) =>
+				u.id === userId ? { ...u, name: editingUserName, memberRole: editingUserRole } : u
+			);
 
 			editingUserId = null;
 			editingUserName = '';
+			editingUserRole = 'member';
 			userError = '';
 		} catch (err) {
 			userError = err instanceof Error ? err.message : 'Failed to update user';
@@ -477,13 +484,13 @@
 												class="flex-1 rounded-md border px-3 py-2 text-sm"
 												placeholder="Name"
 											/>
-											<span
-												class="rounded-full px-2 py-1 text-xs {user.memberRole === 'admin'
-													? 'bg-primary/10 text-primary'
-													: 'bg-muted text-muted-foreground'}"
+											<select
+												bind:value={editingUserRole}
+												class="h-9 rounded-md border bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
 											>
-												{user.role || 'user'}
-											</span>
+												<option value="member">Member</option>
+												<option value="admin">Admin</option>
+											</select>
 										</div>
 										<p class="text-sm text-muted-foreground">{user.email}</p>
 										<div class="flex gap-2">
@@ -509,12 +516,12 @@
 											<div class="flex items-center gap-2 mb-1">
 												<h4 class="font-medium">{user.name}</h4>
 												<span
-													class="rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide {user.role ===
+													class="rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide {user.memberRole ===
 													'admin'
 														? 'bg-primary/10 text-primary'
 														: 'bg-muted text-muted-foreground'}"
 												>
-													{user.role || 'user'}
+													{user.memberRole || 'member'}
 												</span>
 											</div>
 											<p class="text-sm text-muted-foreground truncate">{user.email}</p>

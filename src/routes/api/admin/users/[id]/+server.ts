@@ -2,7 +2,8 @@ import { db } from '$lib/server/db';
 import {
 	isUserAdmin,
 	removeUserFromSharedOrganizations,
-	getUsersInSameOrganizations
+	getUsersInSameOrganizations,
+	updateUserRoleInSharedOrganizations
 } from '$lib/server/organization';
 import type { RequestHandler } from './$types';
 import { error, json } from '@sveltejs/kit';
@@ -71,7 +72,7 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	}
 
 	const body = await request.json();
-	const { name } = body;
+	const { name, role } = body;
 
 	if (!name || typeof name !== 'string' || name.trim().length === 0) {
 		throw error(400, 'Valid name is required');
@@ -93,14 +94,28 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 			WHERE id = ${targetUserId}
 		`);
 
+		// Update the user's role if provided
+		let updatedRole = targetUser.memberRole; // Default to existing role
+		if (role && (role === 'admin' || role === 'member')) {
+			const updatedCount = await updateUserRoleInSharedOrganizations(user.id, targetUserId, role);
+			if (updatedCount > 0) {
+				updatedRole = role;
+			}
+		}
+
 		return json({
 			success: true,
-			message: 'User name updated successfully',
-			user: { id: targetUserId, name: name.trim() }
+			message: 'User updated successfully',
+			user: {
+				id: targetUserId,
+				name: name.trim(),
+				role: targetUser.role, // Global role (unchanged)
+				memberRole: updatedRole // Org role
+			}
 		});
 	} catch (err) {
-		console.error('Error updating user name:', err);
-		const errorMessage = err instanceof Error ? err.message : 'Failed to update user name';
+		console.error('Error updating user:', err);
+		const errorMessage = err instanceof Error ? err.message : 'Failed to update user';
 		throw error(500, errorMessage);
 	}
 };
