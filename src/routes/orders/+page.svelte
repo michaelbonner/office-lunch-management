@@ -32,7 +32,7 @@
 			</p>
 		</div>
 	{:else}
-		<div class="space-y-4">
+		<div class="space-y-4 lg:grid lg:grid-cols-3 lg:gap-4">
 			{#each data.restaurants as restaurant}
 				<div class="space-y-2">
 					<div class="flex items-center justify-start gap-3">
