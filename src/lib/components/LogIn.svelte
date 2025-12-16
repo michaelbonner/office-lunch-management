@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { authClient } from '$lib/auth-client';
 	import Button from '$lib/components/ui/button/button.svelte';
+	import { toast } from 'svelte-sonner';
 
 	let { isAdmin = false, isSystemAdmin = false }: { isAdmin?: boolean; isSystemAdmin?: boolean } =
 		$props();
@@ -25,7 +26,12 @@
 			<Button
 				variant="outline"
 				onclick={async () => {
-					await authClient.signOut();
+					try {
+						await authClient.signOut();
+					} catch (error) {
+						const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+						toast.error(`Error signing out: ${errorMessage}`);
+					}
 				}}
 			>
 				Sign Out
@@ -35,11 +41,16 @@
 		<Button
 			class="cursor-pointer"
 			onclick={async () => {
-				return (
-					await authClient.signIn.social({
-						provider: 'google'
-					})
-				).data;
+				try {
+					return (
+						await authClient.signIn.social({
+							provider: 'google'
+						})
+					).data;
+				} catch (error) {
+					const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+					toast.error(`Error signing in with Google: ${errorMessage}`);
+				}
 			}}
 		>
 			Continue with Google
