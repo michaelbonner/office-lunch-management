@@ -65,6 +65,10 @@
 			: []
 	);
 
+	// Split regular users into those with and without orders
+	let usersWithOrders = $derived(regularUsersWithOrders.filter((u) => !!u.order));
+	let usersWithoutOrders = $derived(regularUsersWithOrders.filter((u) => !u.order));
+
 	let optedOutUsersWithOrders = $derived(
 		selectedRestaurantId
 			? data.users
@@ -225,7 +229,7 @@
 	let selectedRestaurant = $derived(data.restaurants.find((r) => r.id === selectedRestaurantId));
 
 	let progressText = $derived.by(() => {
-		const ordersCount = regularUsersWithOrders.filter((u) => u.order).length;
+		const ordersCount = usersWithOrders.length;
 		return ordersCount > 0 ? `${checkedOrders.size} of ${ordersCount} entered` : '';
 	});
 
@@ -280,7 +284,60 @@
 		</div>
 	{/if}
 
-	{#if selectedRestaurant && regularUsersWithOrders.length > 0}
+	<!-- Users WITHOUT Orders -->
+	{#if selectedRestaurant && usersWithoutOrders.length > 0}
+		<div class="mb-8 rounded-lg border bg-card">
+			<div class="border-b bg-muted/50 p-4">
+				<h3 class="text-lg font-semibold">Users Without Orders ({usersWithoutOrders.length})</h3>
+				<p class="text-sm text-muted-foreground">Click "Add Order" to add a lunch preference</p>
+			</div>
+
+			<div class="divide-y">
+				{#each usersWithoutOrders as userWithOrder (userWithOrder.id)}
+					<div class="flex items-start gap-3 p-4 transition-colors hover:bg-accent/50">
+						{#if creatingOrderForUserId === userWithOrder.id}
+							<!-- Create Order Mode -->
+							<div class="min-w-0 flex-1 space-y-3">
+								<div class="font-medium">
+									{userWithOrder.name}
+								</div>
+								<textarea
+									bind:value={creatingOrderDetails}
+									class="min-h-[100px] w-full rounded-md border bg-background px-3 py-2 focus:ring-2 focus:ring-ring focus:outline-none"
+									placeholder="Enter order details..."
+								></textarea>
+								<div class="flex gap-2">
+									<Button size="sm" onclick={() => createOrder(userWithOrder.id)}>Save</Button>
+									<Button size="sm" variant="outline" onclick={cancelCreatingOrder}>Cancel</Button>
+								</div>
+							</div>
+						{:else}
+							<!-- No Order Yet -->
+							<div class="flex flex-1 items-start justify-between gap-3">
+								<div class="min-w-0 flex-1">
+									<div class="font-medium">
+										{userWithOrder.name}
+									</div>
+									<div class="text-sm text-muted-foreground">{userWithOrder.email}</div>
+								</div>
+								<Button
+									size="sm"
+									variant="default"
+									onclick={() => startCreatingOrder(userWithOrder.id)}
+								>
+									<Plus />
+									Add Order
+								</Button>
+							</div>
+						{/if}
+					</div>
+				{/each}
+			</div>
+		</div>
+	{/if}
+
+	<!-- Users WITH Orders -->
+	{#if selectedRestaurant && usersWithOrders.length > 0}
 		<div class="rounded-lg border bg-card">
 			<div class="flex items-center justify-between border-b p-4">
 				<div>
@@ -301,9 +358,9 @@
 			</div>
 
 			<div class="divide-y">
-				{#each regularUsersWithOrders as userWithOrder (userWithOrder.id)}
+				{#each usersWithOrders as userWithOrder (userWithOrder.id)}
 					<div class="flex items-start gap-3 p-4 transition-colors hover:bg-accent/50">
-						{#if userWithOrder.order && editingOrderId === userWithOrder.order.id}
+						{#if editingOrderId === userWithOrder.order!.id}
 							<!-- Edit Mode -->
 							<div class="min-w-0 flex-1 space-y-3">
 								<div class="font-medium">
@@ -319,12 +376,12 @@
 									<Button size="sm" variant="outline" onclick={cancelEditing}>Cancel</Button>
 								</div>
 							</div>
-						{:else if userWithOrder.order}
+						{:else}
 							<!-- View Mode with Order -->
 							<label class="flex min-w-0 flex-1 cursor-pointer items-start gap-3">
 								<input
 									type="checkbox"
-									checked={checkedOrders.has(userWithOrder.order.id)}
+									checked={checkedOrders.has(userWithOrder.order!.id)}
 									onchange={() => toggleOrder(userWithOrder.order!.id)}
 									class="mt-1 h-5 w-5 cursor-pointer rounded border-gray-300"
 								/>
@@ -335,7 +392,7 @@
 									<div
 										class="mt-1 text-sm wrap-break-word whitespace-pre-wrap text-muted-foreground"
 									>
-										{userWithOrder.order.orderDetails}
+										{userWithOrder.order!.orderDetails}
 									</div>
 								</div>
 							</label>
@@ -363,40 +420,6 @@
 								>
 									<span class="sr-only">Remove order</span>
 									<Trash />
-								</Button>
-							</div>
-						{:else if creatingOrderForUserId === userWithOrder.id}
-							<!-- Create Order Mode -->
-							<div class="min-w-0 flex-1 space-y-3">
-								<div class="font-medium">
-									{userWithOrder.name}
-								</div>
-								<textarea
-									bind:value={creatingOrderDetails}
-									class="min-h-[100px] w-full rounded-md border bg-background px-3 py-2 focus:ring-2 focus:ring-ring focus:outline-none"
-									placeholder="Enter order details..."
-								></textarea>
-								<div class="flex gap-2">
-									<Button size="sm" onclick={() => createOrder(userWithOrder.id)}>Save</Button>
-									<Button size="sm" variant="outline" onclick={cancelCreatingOrder}>Cancel</Button>
-								</div>
-							</div>
-						{:else}
-							<!-- No Order Yet -->
-							<div class="flex flex-1 items-start justify-between gap-3">
-								<div class="min-w-0 flex-1">
-									<div class="font-medium text-muted-foreground">
-										{userWithOrder.name}
-									</div>
-									<div class="mt-1 text-sm text-muted-foreground/70 italic">No order yet</div>
-								</div>
-								<Button
-									size="sm"
-									variant="outline"
-									onclick={() => startCreatingOrder(userWithOrder.id)}
-								>
-									<Plus />
-									Add Order
 								</Button>
 							</div>
 						{/if}
