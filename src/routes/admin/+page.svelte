@@ -3,20 +3,43 @@
 	import UserForm from '$lib/components/UserForm.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import type { PageData } from './$types';
-	import { Utensils, Check, List, Pencil, Trash, X } from '@lucide/svelte';
+	import { Utensils, Check, List, Pencil, Trash, X, Search, Building, Users } from '@lucide/svelte';
 
 	let { data = $bindable() }: { data: PageData } = $props();
 
+	// State
+	let activeTab = $state<'restaurants' | 'users'>('restaurants');
+	let restaurantSearch = $state('');
+	let userSearch = $state('');
+
+	// Data
 	let users = $state<any[]>([]);
 	let restaurants = $state(data.restaurants);
 	let loadingUsers = $state(false);
+
+	// Editing State - Restaurants
 	let editingRestaurantId = $state<string | null>(null);
 	let editingRestaurantName = $state('');
 	let editingRestaurantMenuLink = $state('');
+	let restaurantError = $state('');
+
+	// Editing State - Users
 	let editingUserId = $state<string | null>(null);
 	let editingUserName = $state('');
-	let restaurantError = $state('');
 	let userError = $state('');
+
+	// Derived
+	let filteredRestaurants = $derived(
+		restaurants.filter((r) => r.name.toLowerCase().includes(restaurantSearch.toLowerCase()))
+	);
+
+	let filteredUsers = $derived(
+		users.filter(
+			(u) =>
+				u.name?.toLowerCase().includes(userSearch.toLowerCase()) ||
+				u.email?.toLowerCase().includes(userSearch.toLowerCase())
+		)
+	);
 
 	async function refreshRestaurants() {
 		const response = await fetch('/api/restaurants');
@@ -199,145 +222,251 @@
 	});
 </script>
 
-<div class="container mx-auto max-w-4xl px-4 py-8">
-	<div class="grid gap-8 md:grid-cols-2">
+<div class="container mx-auto max-w-5xl px-4 py-8">
+	<div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 		<div>
-			<h2 class="mb-4 text-xl font-semibold">Create New Restaurant</h2>
-			<div class="rounded-lg border bg-card p-6">
-				<RestaurantForm onSuccess={refreshRestaurants} />
-			</div>
+			<h1 class="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+			<p class="text-muted-foreground">Manage your organization's restaurants and users.</p>
 		</div>
+		<Button variant="outline" href="/" class="gap-2">← Back to Home</Button>
+	</div>
 
-		<div>
-			<h2 class="mb-4 text-xl font-semibold">Existing Restaurants ({restaurants.length})</h2>
-			<div class="max-h-[420px] space-y-3 overflow-y-auto">
-				{#if restaurants.length === 0}
-					<div class="rounded-lg border bg-card p-6 text-center text-muted-foreground">
-						No restaurants yet. Create one to get started!
-					</div>
-				{:else}
-					{#each restaurants as restaurant}
-						<div class="rounded-lg border bg-card p-4">
-							{#if editingRestaurantId === restaurant.id}
-								<!-- Edit Mode -->
-								<div class="space-y-3">
-									<div>
-										<label for="edit-name" class="mb-1.5 block text-sm font-medium">
-											Restaurant Name
-										</label>
-										<input
-											id="edit-name"
-											type="text"
-											bind:value={editingRestaurantName}
-											class="w-full rounded-md border bg-background px-3 py-2 focus:ring-2 focus:ring-ring focus:outline-none"
-											placeholder="Enter restaurant name"
-										/>
-									</div>
-									<div>
-										<label for="edit-menu-link" class="mb-1.5 block text-sm font-medium">
-											Menu Link
-										</label>
-										<input
-											id="edit-menu-link"
-											type="url"
-											bind:value={editingRestaurantMenuLink}
-											class="w-full rounded-md border bg-background px-3 py-2 focus:ring-2 focus:ring-ring focus:outline-none"
-											placeholder="https://example.com/menu"
-										/>
-									</div>
-									{#if restaurantError}
-										<div class="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-											{restaurantError}
-										</div>
-									{/if}
-									<div class="flex gap-2">
-										<Button size="sm" onclick={() => saveRestaurant(restaurant.id)}>Save</Button>
-										<Button size="sm" variant="outline" onclick={cancelEditingRestaurant}>
-											Cancel
-										</Button>
-									</div>
-								</div>
-							{:else}
-								<!-- View Mode -->
-								<div class="space-y-3">
-									<div class="flex items-start justify-between gap-3">
-										<div class="min-w-0 flex-1 justify-start">
-											<h3 class="mb-2 font-medium">{restaurant.name}</h3>
-											<a
-												href={restaurant.menuLink}
-												target="_blank"
-												rel="noopener noreferrer"
-												class="text-sm break-all text-primary hover:underline flex items-center gap-1"
-											>
-												<Utensils size={16} />
-												<span> View Menu </span>
-											</a>
-										</div>
-										<div class="flex shrink-0 gap-1">
-											<Button
-												size="sm"
-												variant="ghost"
-												onclick={() => startEditingRestaurant(restaurant)}
-											>
-												<Pencil />
-												<span class="sr-only">Edit restaurant</span>
-											</Button>
-											<Button
-												size="sm"
-												variant="ghost"
-												onclick={() => deleteRestaurant(restaurant.id, restaurant.name)}
-												class="text-destructive hover:bg-destructive/10"
-											>
-												<Trash color="currentColor" />
-												<span class="sr-only">Delete restaurant</span>
-											</Button>
-										</div>
-									</div>
-									<Button
-										size="sm"
-										href="/admin/orders?restaurantId={restaurant.id}"
-										class="w-full"
-									>
-										Make Order
-									</Button>
-								</div>
-							{/if}
-						</div>
-					{/each}
-				{/if}
-			</div>
+	<!-- Tabs Navigation -->
+	<div class="mb-8 border-b">
+		<div class="flex gap-6">
+			<button
+				onclick={() => (activeTab = 'restaurants')}
+				class="flex items-center gap-2 border-b-2 px-1 pb-4 text-sm font-medium transition-colors hover:text-foreground {activeTab ===
+				'restaurants'
+					? 'border-primary text-foreground'
+					: 'border-transparent text-muted-foreground'}"
+			>
+				<Utensils size={18} />
+				Restaurants
+			</button>
+			<button
+				onclick={() => (activeTab = 'users')}
+				class="flex items-center gap-2 border-b-2 px-1 pb-4 text-sm font-medium transition-colors hover:text-foreground {activeTab ===
+				'users'
+					? 'border-primary text-foreground'
+					: 'border-transparent text-muted-foreground'}"
+			>
+				<Users size={18} />
+				Users
+			</button>
 		</div>
 	</div>
 
-	<div class="mt-12 border-t pt-12">
-		<h2 class="mb-6 text-2xl font-bold">User Management</h2>
-		<div class="grid gap-8 md:grid-cols-2">
-			<div>
-				<h3 class="mb-4 text-xl font-semibold">Create New User</h3>
-				<div class="rounded-lg border bg-card p-6">
-					<UserForm onSuccess={loadUsers} />
+	{#if activeTab === 'restaurants'}
+		<div class="grid gap-8 md:grid-cols-12 animate-in fade-in slide-in-from-bottom-2 duration-300">
+			<!-- Left Column: Create Form -->
+			<div class="md:col-span-12 lg:col-span-4">
+				<div class="lg:sticky lg:top-8">
+					<div class="mb-4">
+						<h2 class="text-lg font-semibold">Add New Restaurant</h2>
+						<p class="text-sm text-muted-foreground">
+							Add a new place for your team to order from.
+						</p>
+					</div>
+					<div class="rounded-lg border bg-card p-6 shadow-sm">
+						<RestaurantForm onSuccess={refreshRestaurants} />
+					</div>
 				</div>
 			</div>
 
-			<div>
-				<h3 class="mb-4 text-xl font-semibold">Existing Users ({users.length})</h3>
-				<div class="max-h-[420px] space-y-3 overflow-y-auto">
+			<!-- Right Column: List -->
+			<div class="md:col-span-12 lg:col-span-8">
+				<div class="mb-4 flex items-center justify-between gap-4">
+					<h2 class="text-lg font-semibold">All Restaurants ({restaurants.length})</h2>
+					<div class="relative w-full max-w-xs">
+						<Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+						<input
+							type="text"
+							placeholder="Search restaurants..."
+							bind:value={restaurantSearch}
+							class="w-full rounded-md border bg-background pl-9 pr-4 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
+						/>
+					</div>
+				</div>
+
+				<div class="space-y-3">
+					{#if filteredRestaurants.length === 0}
+						<div
+							class="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center text-muted-foreground"
+						>
+							<Utensils class="mb-4 h-10 w-10 opacity-20" />
+							{#if restaurantSearch}
+								<p>No restaurants found matching "{restaurantSearch}"</p>
+							{:else}
+								<p>No restaurants yet. Create one to get started!</p>
+							{/if}
+						</div>
+					{:else}
+						{#each filteredRestaurants as restaurant (restaurant.id)}
+							<div
+								class="group relative rounded-lg border bg-card p-4 transition-all hover:shadow-md"
+							>
+								{#if editingRestaurantId === restaurant.id}
+									<!-- Edit Mode -->
+									<div class="space-y-3">
+										<div>
+											<label
+												for="edit-name-{restaurant.id}"
+												class="mb-1.5 block text-sm font-medium"
+											>
+												Restaurant Name
+											</label>
+											<input
+												id="edit-name-{restaurant.id}"
+												type="text"
+												bind:value={editingRestaurantName}
+												class="w-full rounded-md border bg-background px-3 py-2 focus:ring-2 focus:ring-ring focus:outline-none"
+												placeholder="Enter restaurant name"
+											/>
+										</div>
+										<div>
+											<label
+												for="edit-menu-link-{restaurant.id}"
+												class="mb-1.5 block text-sm font-medium"
+											>
+												Menu Link
+											</label>
+											<input
+												id="edit-menu-link-{restaurant.id}"
+												type="url"
+												bind:value={editingRestaurantMenuLink}
+												class="w-full rounded-md border bg-background px-3 py-2 focus:ring-2 focus:ring-ring focus:outline-none"
+												placeholder="https://example.com/menu"
+											/>
+										</div>
+										{#if restaurantError}
+											<div class="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+												{restaurantError}
+											</div>
+										{/if}
+										<div class="flex gap-2">
+											<Button size="sm" onclick={() => saveRestaurant(restaurant.id)}>Save</Button>
+											<Button size="sm" variant="outline" onclick={cancelEditingRestaurant}>
+												Cancel
+											</Button>
+										</div>
+									</div>
+								{:else}
+									<!-- View Mode -->
+									<div class="space-y-3">
+										<div class="flex items-start justify-between gap-3">
+											<div class="min-w-0 flex-1 justify-start">
+												<h3 class="font-medium text-lg leading-none mb-2">{restaurant.name}</h3>
+												<a
+													href={restaurant.menuLink}
+													target="_blank"
+													rel="noopener noreferrer"
+													class="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
+												>
+													<List size={14} />
+													<span class="truncate">View Menu</span>
+												</a>
+											</div>
+											<div
+												class="flex shrink-0 gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+											>
+												<Button
+													size="icon"
+													variant="ghost"
+													onclick={() => startEditingRestaurant(restaurant)}
+													class="h-8 w-8"
+												>
+													<Pencil size={14} />
+													<span class="sr-only">Edit restaurant</span>
+												</Button>
+												<Button
+													size="icon"
+													variant="ghost"
+													onclick={() => deleteRestaurant(restaurant.id, restaurant.name)}
+													class="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+												>
+													<Trash size={14} />
+													<span class="sr-only">Delete restaurant</span>
+												</Button>
+											</div>
+										</div>
+										<div class="pt-2 flex justify-end">
+											<Button
+												size="sm"
+												variant="secondary"
+												href="/admin/orders?restaurantId={restaurant.id}"
+												class="w-full sm:w-auto"
+											>
+												Make Order
+											</Button>
+										</div>
+									</div>
+								{/if}
+							</div>
+						{/each}
+					{/if}
+				</div>
+			</div>
+		</div>
+	{:else if activeTab === 'users'}
+		<div class="grid gap-8 md:grid-cols-12 animate-in fade-in slide-in-from-bottom-2 duration-300">
+			<!-- Left Column: Create Form -->
+			<div class="md:col-span-12 lg:col-span-4">
+				<div class="lg:sticky lg:top-8">
+					<div class="mb-4">
+						<h2 class="text-lg font-semibold">Add New User</h2>
+						<p class="text-sm text-muted-foreground">Invite a new member to your organization.</p>
+					</div>
+					<div class="rounded-lg border bg-card p-6 shadow-sm">
+						<UserForm onSuccess={loadUsers} />
+					</div>
+				</div>
+			</div>
+
+			<!-- Right Column: List -->
+			<div class="md:col-span-12 lg:col-span-8">
+				<div class="mb-4 flex items-center justify-between gap-4">
+					<h2 class="text-lg font-semibold">All Users ({users.length})</h2>
+					<div class="relative w-full max-w-xs">
+						<Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+						<input
+							type="text"
+							placeholder="Search users..."
+							bind:value={userSearch}
+							class="w-full rounded-md border bg-background pl-9 pr-4 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
+						/>
+					</div>
+				</div>
+
+				<div class="space-y-3">
 					{#if loadingUsers}
-						<div class="rounded-lg border bg-card p-6 text-center text-muted-foreground">
+						<div
+							class="flex flex-col items-center justify-center p-12 text-center text-muted-foreground"
+						>
 							Loading users...
 						</div>
-					{:else if users.length === 0}
-						<div class="rounded-lg border bg-card p-6 text-center text-muted-foreground">
-							No users found.
+					{:else if filteredUsers.length === 0}
+						<div
+							class="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center text-muted-foreground"
+						>
+							<Users class="mb-4 h-10 w-10 opacity-20" />
+							{#if userSearch}
+								<p>No users found matching "{userSearch}"</p>
+							{:else}
+								<p>No users found.</p>
+							{/if}
 						</div>
 					{:else}
 						{#if userError}
-							<div class="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+							<div class="rounded-md bg-destructive/10 p-3 text-sm text-destructive mb-4">
 								{userError}
 							</div>
 						{/if}
-						{#each users as user}
-							<div class="rounded-lg border bg-card p-4">
+
+						{#each filteredUsers as user (user.id)}
+							<div
+								class="group relative rounded-lg border bg-card p-4 transition-all hover:shadow-md"
+							>
 								{#if editingUserId === user.id}
 									<!-- Edit mode -->
 									<div class="space-y-3">
@@ -359,7 +488,7 @@
 										<p class="text-sm text-muted-foreground">{user.email}</p>
 										<div class="flex gap-2">
 											<Button size="sm" onclick={() => saveUser(user.id)} class="flex-1">
-												<Check />
+												<Check size={16} class="mr-1" />
 												Save
 											</Button>
 											<Button
@@ -368,7 +497,7 @@
 												onclick={cancelEditingUser}
 												class="flex-1"
 											>
-												<X />
+												<X size={16} class="mr-1" />
 												Cancel
 											</Button>
 										</div>
@@ -377,42 +506,47 @@
 									<!-- View mode -->
 									<div class="flex items-start justify-between gap-3">
 										<div class="min-w-0 flex-1">
-											<h4 class="font-medium">{user.name}</h4>
-											<p class="text-sm text-muted-foreground">{user.email}</p>
+											<div class="flex items-center gap-2 mb-1">
+												<h4 class="font-medium">{user.name}</h4>
+												<span
+													class="rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide {user.role ===
+													'admin'
+														? 'bg-primary/10 text-primary'
+														: 'bg-muted text-muted-foreground'}"
+												>
+													{user.role || 'user'}
+												</span>
+											</div>
+											<p class="text-sm text-muted-foreground truncate">{user.email}</p>
 										</div>
-										<div class="flex shrink-0 items-center gap-2">
-											<span
-												class="rounded-full px-2 py-1 text-xs {user.memberRole === 'admin'
-													? 'bg-primary/10 text-primary'
-													: 'bg-muted text-muted-foreground'}"
-											>
-												{user.role || 'user'}
-											</span>
+										<div
+											class="flex shrink-0 items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+										>
 											<Button
-												size="sm"
+												size="icon"
 												variant="ghost"
 												onclick={() => startEditingUser(user)}
-												class="h-8 px-2"
+												class="h-8 w-8"
 											>
-												<Pencil />
+												<Pencil size={14} />
 												<span class="sr-only">Edit {user.name}</span>
 											</Button>
 											<Button
-												size="sm"
+												size="icon"
 												variant="ghost"
 												href="/admin/user-orders?userId={user.id}"
-												class="h-8 px-2"
+												class="h-8 w-8"
 											>
-												<List />
+												<List size={14} />
 												<span class="sr-only">View {user.name}'s orders</span>
 											</Button>
 											<Button
-												size="sm"
+												size="icon"
 												variant="ghost"
 												onclick={() => removeUser(user.id, user.name)}
-												class="h-8 px-2 text-destructive hover:bg-destructive/10"
+												class="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
 											>
-												<Trash color="currentColor" />
+												<Trash size={14} />
 												<span class="sr-only">Remove {user.name}</span>
 											</Button>
 										</div>
@@ -424,13 +558,5 @@
 				</div>
 			</div>
 		</div>
-	</div>
-
-	<div class="mt-8">
-		<Button variant="outline" href="/">
-			{#snippet children()}
-				← Back to Home
-			{/snippet}
-		</Button>
-	</div>
+	{/if}
 </div>
