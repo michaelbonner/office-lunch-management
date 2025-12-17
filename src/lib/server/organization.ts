@@ -364,3 +364,32 @@ export async function updateUserRoleInSharedOrganizations(
 		throw error;
 	}
 }
+
+/**
+ * Get all users that are not in any organization
+ */
+export async function getUsersWithoutOrganizations() {
+	try {
+		const users = await db.execute<{
+			id: string;
+			name: string;
+			email: string;
+			role: string | null;
+			createdAt: Date;
+		}>(sql`
+			SELECT u.id, u.name, u.email, u.role, u."createdAt"
+			FROM "user" u
+			WHERE NOT EXISTS (
+				SELECT 1
+				FROM member m
+				WHERE m."userId" = u.id
+			)
+			ORDER BY u.name ASC
+		`);
+
+		return users;
+	} catch (error) {
+		console.error('Error getting users without organizations:', error);
+		throw error;
+	}
+}

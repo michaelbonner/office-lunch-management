@@ -2,12 +2,15 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	import type { PageData } from './$types';
 	import { ChevronDown } from '@lucide/svelte';
+	import clsx from 'clsx';
 	import { SvelteSet } from 'svelte/reactivity';
 
 	let { data = $bindable() }: { data: PageData } = $props();
 
 	let organizations = $derived(data.organizations);
+	let usersWithoutOrganizations = $derived(data.usersWithoutOrganizations);
 	let expandedOrgs = new SvelteSet<string>();
+	let showUsersWithoutOrg = $state(false);
 
 	function toggleOrganization(orgId: string) {
 		if (expandedOrgs.has(orgId)) {
@@ -15,6 +18,10 @@
 		} else {
 			expandedOrgs.add(orgId);
 		}
+	}
+
+	function toggleUsersWithoutOrg() {
+		showUsersWithoutOrg = !showUsersWithoutOrg;
 	}
 </script>
 
@@ -97,6 +104,59 @@
 					{/if}
 				</div>
 			{/each}
+		</div>
+
+		<!-- Users without Organizations Section -->
+		<div class="mt-8 overflow-hidden rounded-lg border bg-card">
+			<!-- Section Header -->
+			<button
+				onclick={toggleUsersWithoutOrg}
+				class={clsx(
+					'flex w-full items-center justify-between p-6 text-left transition-colors hover:bg-muted/50',
+					usersWithoutOrganizations.length === 0 && 'opacity-50 cursor-not-allowed'
+				)}
+				disabled={usersWithoutOrganizations.length === 0}
+			>
+				<div class="flex-1">
+					<h2 class="text-xl font-semibold">Users Without an Organization</h2>
+					<div class="mt-1 text-sm text-muted-foreground">
+						<span
+							>{usersWithoutOrganizations.length}
+							{usersWithoutOrganizations.length === 1 ? 'user' : 'users'} not in any organization</span
+						>
+					</div>
+				</div>
+				<div class="ml-4">
+					<ChevronDown
+						class={showUsersWithoutOrg ? 'rotate-180 transition-transform' : 'transition-transform'}
+					/>
+				</div>
+			</button>
+
+			<!-- Users List (Collapsible) -->
+			{#if showUsersWithoutOrg}
+				<div class="border-t bg-muted/20">
+					<div class="divide-y">
+						{#each usersWithoutOrganizations as user (user.id)}
+							<div class="flex items-center justify-between p-4 hover:bg-muted/30">
+								<div class="flex-1">
+									<div class="font-medium">{user.name}</div>
+									<div class="text-sm text-muted-foreground">{user.email}</div>
+								</div>
+								<div class="flex items-center gap-3">
+									{#if user.role === 'admin'}
+										<span
+											class="rounded-full bg-red-100 px-2.5 py-1 text-xs font-medium text-red-700 dark:bg-red-900/30 dark:text-red-400"
+										>
+											System Admin
+										</span>
+									{/if}
+								</div>
+							</div>
+						{/each}
+					</div>
+				</div>
+			{/if}
 		</div>
 	{/if}
 </div>

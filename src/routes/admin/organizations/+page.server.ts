@@ -1,4 +1,8 @@
-import { getAllOrganizationsWithMembers, isUserSystemAdmin } from '$lib/server/organization';
+import {
+	getAllOrganizationsWithMembers,
+	getUsersWithoutOrganizations,
+	isUserSystemAdmin
+} from '$lib/server/organization';
 import type { PageServerLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
 
@@ -18,9 +22,11 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	// Load all organizations with their members
 	const organizations = await getAllOrganizationsWithMembers();
+	const usersWithoutOrganizations = await getUsersWithoutOrganizations();
 
 	return {
 		organizations,
+		usersWithoutOrganizations,
 		user
 	};
 };
