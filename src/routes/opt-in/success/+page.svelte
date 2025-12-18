@@ -21,7 +21,8 @@
 
 		<p class="mb-6 text-muted-foreground">
 			{#if isOptIn}
-				You have opted in for lunch today. You will appear in the ordering list and can place your order.
+				You have opted in for lunch today. You will appear in the ordering list and can place your
+				order.
 			{:else}
 				You have opted out of lunch for today. You will not appear in the ordering list.
 			{/if}
