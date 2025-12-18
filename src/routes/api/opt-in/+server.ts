@@ -9,7 +9,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	if (!user) {
 		// Store intended destination in URL for redirect after login
 		const returnUrl = url.pathname + url.search;
-		throw redirect(303, `/api/auth/sign-in?callbackURL=${encodeURIComponent(returnUrl)}`);
+		throw redirect(303, `/sign-in?callbackURL=${encodeURIComponent(returnUrl)}`);
 	}
 
 	const action = url.searchParams.get('action');
