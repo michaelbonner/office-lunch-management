@@ -28,11 +28,17 @@
 		order: Order | null;
 	};
 
-	type OptedOutUser = {
+	type OptedInUser = {
 		id: string;
 		email: string;
 		name: string;
 		createdAt: Date;
+	};
+
+	type NotOptedInUser = {
+		id: string;
+		email: string;
+		name: string;
 	};
 
 	let selectedRestaurantId = $state<string>('');
@@ -45,14 +51,14 @@
 	let creatingOrderForUserId = $state<string | null>(null);
 	let creatingOrderDetails = $state('');
 
-	// Create Set of opted-out user IDs for fast lookup
-	let optedOutUserIds = $derived(new Set(data.optedOutUsers.map((u) => u.id)));
+	// Create Set of opted-in user IDs for fast lookup
+	let optedInUserIds = $derived(new Set(data.optedInUsers.map((u) => u.id)));
 
-	// Split users into regular and opted-out lists
-	let regularUsersWithOrders = $derived(
+	// Only show users who are opted in
+	let optedInUsersWithOrders = $derived(
 		selectedRestaurantId
 			? data.users
-					.filter((user) => !optedOutUserIds.has(user.id))
+					.filter((user) => optedInUserIds.has(user.id))
 					.map((user) => {
 						const order = orders.find((o) => o.userId === user.id);
 						return {
@@ -65,25 +71,18 @@
 			: []
 	);
 
-	// Split regular users into those with and without orders
-	let usersWithOrders = $derived(regularUsersWithOrders.filter((u) => !!u.order));
-	let usersWithoutOrders = $derived(regularUsersWithOrders.filter((u) => !u.order));
+	// Split opted-in users into those with and without orders
+	let usersWithOrders = $derived(optedInUsersWithOrders.filter((u) => !!u.order));
+	let usersWithoutOrders = $derived(optedInUsersWithOrders.filter((u) => !u.order));
 
-	let optedOutUsersWithOrders = $derived(
+	// Users who haven't opted in yet
+	let notOptedInUsersList = $derived(
 		selectedRestaurantId
-			? data.users
-					.filter((user) => optedOutUserIds.has(user.id))
-					.map((user) => {
-						const order = orders.find((o) => o.userId === user.id);
-						const optOutInfo = data.optedOutUsers.find((u) => u.id === user.id);
-						return {
-							id: user.id,
-							name: user.name,
-							email: user.email,
-							order: order || null,
-							optedOutAt: optOutInfo?.createdAt
-						};
-					})
+			? data.notOptedInUsers.map((user) => ({
+					id: user.id,
+					name: user.name,
+					email: user.email
+				}))
 			: []
 	);
 
@@ -226,6 +225,56 @@
 		}
 	}
 
+	async function optInUser(userId: string) {
+		try {
+			const response = await fetch('/api/admin/opt-ins', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					userId,
+					action: 'in'
+				})
+			});
+
+			if (!response.ok) {
+				const data = await response.json();
+				throw new Error(data.message || 'Failed to opt in user');
+			}
+
+			// Reload the page to refresh the user lists
+			window.location.reload();
+		} catch (err) {
+			error = err instanceof Error ? err.message : 'Failed to opt in user';
+		}
+	}
+
+	async function optOutUser(userId: string) {
+		try {
+			const response = await fetch('/api/admin/opt-ins', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					userId,
+					action: 'out'
+				})
+			});
+
+			if (!response.ok) {
+				const data = await response.json();
+				throw new Error(data.message || 'Failed to opt out user');
+			}
+
+			// Reload the page to refresh the user lists
+			window.location.reload();
+		} catch (err) {
+			error = err instanceof Error ? err.message : 'Failed to opt out user';
+		}
+	}
+
 	let selectedRestaurant = $derived(data.restaurants.find((r) => r.id === selectedRestaurantId));
 
 	let progressText = $derived.by(() => {
@@ -288,8 +337,12 @@
 	{#if selectedRestaurant && usersWithoutOrders.length > 0}
 		<div class="mb-8 rounded-lg border bg-card">
 			<div class="border-b bg-muted/50 p-4">
-				<h3 class="text-lg font-semibold">Users Without Orders ({usersWithoutOrders.length})</h3>
-				<p class="text-sm text-muted-foreground">Click "Add Order" to add a lunch preference</p>
+				<h3 class="text-lg font-semibold">
+					Opted In - Without Orders ({usersWithoutOrders.length})
+				</h3>
+				<p class="text-sm text-muted-foreground">
+					These users opted in for lunch but haven't placed orders yet
+				</p>
 			</div>
 
 			<div class="divide-y">
@@ -342,6 +395,7 @@
 			<div class="flex items-center justify-between border-b p-4">
 				<div>
 					<h2 class="text-xl font-semibold">{selectedRestaurant.name}</h2>
+					<p class="text-sm text-muted-foreground">Opted in with orders</p>
 					<a
 						href={selectedRestaurant.menuLink}
 						target="_blank"
@@ -429,29 +483,25 @@
 		</div>
 	{/if}
 
-	<!-- Opted Out Section -->
-	{#if optedOutUsersWithOrders.length > 0}
+	<!-- Not Opted In Section -->
+	{#if notOptedInUsersList.length > 0}
 		<div class="mt-8 rounded-lg border bg-card">
 			<div class="border-b bg-muted/50 p-4">
 				<h3 class="font-semibold text-muted-foreground">
-					Opted Out Today ({optedOutUsersWithOrders.length})
+					Not Opted In Today ({notOptedInUsersList.length})
 				</h3>
+				<p class="text-sm text-muted-foreground">These users have not opted in for lunch today</p>
 			</div>
 			<div class="divide-y">
-				{#each optedOutUsersWithOrders as user (user.id)}
-					<div class="flex items-center justify-between p-4 opacity-60">
+				{#each notOptedInUsersList as user (user.id)}
+					<div class="flex items-center justify-between p-4">
 						<div>
 							<div class="font-medium">{user.name}</div>
 							<div class="text-sm text-muted-foreground">{user.email}</div>
 						</div>
-						<div class="text-sm text-muted-foreground">
-							{#if user.optedOutAt}
-								Opted out at {new Date(user.optedOutAt).toLocaleTimeString('en-US', {
-									hour: 'numeric',
-									minute: '2-digit'
-								})}
-							{/if}
-						</div>
+						<Button size="sm" variant="outline" onclick={() => optInUser(user.id)}>
+							Opt In for Lunch
+						</Button>
 					</div>
 				{/each}
 			</div>

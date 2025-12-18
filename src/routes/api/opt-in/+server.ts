@@ -1,4 +1,4 @@
-import { optUserOut, optUserIn, getTodayDate } from '$lib/server/opt-out';
+import { optUserIn, optUserOut, getTodayDate } from '$lib/server/opt-in';
 import type { RequestHandler } from './$types';
 import { error, redirect } from '@sveltejs/kit';
 
@@ -19,16 +19,16 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	}
 
 	try {
-		if (action === 'out') {
-			await optUserOut(user.id, getTodayDate());
-		} else {
+		if (action === 'in') {
 			await optUserIn(user.id, getTodayDate());
+		} else {
+			await optUserOut(user.id, getTodayDate());
 		}
 	} catch (err) {
-		console.error('Error processing opt-out:', err);
-		throw error(500, 'Failed to process opt-out request');
+		console.error('Error processing opt-in:', err);
+		throw error(500, 'Failed to process opt-in request');
 	}
 
 	// Redirect after successful operation
-	throw redirect(303, `/opt-out/success?action=${action}`);
+	throw redirect(303, `/opt-in/success?action=${action}`);
 };

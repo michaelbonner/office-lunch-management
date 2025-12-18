@@ -3,20 +3,20 @@ import { sql } from "drizzle-orm"
 
 
 
-export const optOut = pgTable("opt_out", {
+export const optIn = pgTable("opt_in", {
 	id: text().primaryKey().notNull(),
 	userId: text("user_id").notNull(),
 	organizationId: text("organization_id").notNull(),
-	optOutDate: text("opt_out_date").notNull(),
+	optInDate: text("opt_in_date").notNull(),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 }, (table) => [
 	foreignKey({
 			columns: [table.userId],
 			foreignColumns: [user.id],
-			name: "opt_out_userId_fkey"
+			name: "opt_in_userId_fkey"
 		}).onDelete("cascade"),
-	unique("opt_out_user_id_organization_id_opt_out_date_unique").on(table.userId, table.organizationId, table.optOutDate),
+	unique("opt_in_user_id_organization_id_opt_in_date_unique").on(table.userId, table.organizationId, table.optInDate),
 ]);
 
 export const session = pgTable("session", {

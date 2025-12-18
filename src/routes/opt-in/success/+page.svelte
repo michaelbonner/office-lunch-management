@@ -4,7 +4,7 @@
 	import { Check } from '@lucide/svelte';
 
 	const action = $page.url.searchParams.get('action');
-	const isOptOut = action === 'out';
+	const isOptIn = action === 'in';
 </script>
 
 <div class="container mx-auto max-w-2xl px-4 py-16">
@@ -16,27 +16,27 @@
 		</div>
 
 		<h1 class="mb-2 text-2xl font-bold">
-			{isOptOut ? 'Opted Out Successfully' : 'Opted Back In Successfully'}
+			{isOptIn ? 'Opted In Successfully' : 'Opted Out Successfully'}
 		</h1>
 
 		<p class="mb-6 text-muted-foreground">
-			{#if isOptOut}
-				You have been opted out of lunch for today. You will not appear in the ordering list.
+			{#if isOptIn}
+				You have opted in for lunch today. You will appear in the ordering list and can place your order.
 			{:else}
-				You have been opted back in for lunch today. You will appear in the ordering list.
+				You have opted out of lunch for today. You will not appear in the ordering list.
 			{/if}
 		</p>
 
 		<div class="my-8 flex flex-col gap-2">
-			{#if isOptOut}
-				<p>If this was a mistake, you can opt back in by clicking the button below.</p>
+			{#if isOptIn}
+				<p>If you need to opt out, you can do so by clicking the button below.</p>
 				<p>
-					<Button variant="outline" href="/api/opt-out?action=in">Opt Back In</Button>
+					<Button variant="outline" href="/api/opt-in?action=out">Opt Out</Button>
 				</p>
 			{:else}
-				<p>If you want to opt out again, you can do so by clicking the button below.</p>
+				<p>If this was a mistake, you can opt back in by clicking the button below.</p>
 				<p>
-					<Button variant="outline" href="/api/opt-out?action=out">Opt Out</Button>
+					<Button variant="outline" href="/api/opt-in?action=in">Opt Back In</Button>
 				</p>
 			{/if}
 		</div>

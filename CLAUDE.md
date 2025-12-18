@@ -72,7 +72,7 @@ Located in `drizzle/schema.ts`. Core tables:
 - **member** - User-organization relationships with `role` (owner/admin/member)
 - **restaurant** - Restaurants with `name` and `menuLink`
 - **order** - User orders with `userId`, `restaurantId`, `orderDetails` (unique constraint on user+restaurant)
-- **opt_out** - Date-specific opt-outs with `userId`, `organizationId`, `optOutDate` (unique constraint on all three)
+- **opt_in** - Date-specific opt-ins with `userId`, `organizationId`, `optInDate` (unique constraint on all three)
 - **session, account, verification, invitation** - Better Auth tables
 
 Database connection: `src/lib/server/db/index.ts` uses `drizzle-orm/postgres-js` with the full schema imported.
@@ -88,20 +88,22 @@ Key patterns:
 - Helper functions: `getUserOrganizations()`, `isUserAdmin()`, `isUserSystemAdmin()`, `getUsersInSameOrganizations()`, `getAllOrganizationsWithMembers()`
 - Admin access control: Users are admins if they have `admin` or `owner` role in ANY organization
 
-### Opt-Out System
+### Opt-In System
 
-File: `src/lib/server/opt-out.ts`
+File: `src/lib/server/opt-in.ts`
 
-- Date-based opt-outs stored as YYYY-MM-DD strings
+- Date-based opt-ins stored as YYYY-MM-DD strings
 - Default timezone: `America/Denver`
-- Key functions: `optUserOut()`, `optUserIn()`, `isUserOptedOut()`, `getOptedOutUsers()`
-- Opt-outs are per-organization but typically created for all user's organizations at once
+- Key functions: `optUserIn()`, `optUserOut()`, `isUserOptedIn()`, `getOptedInUsers()`, `getNotOptedInUsers()`
+- Admin functions: `adminOptUserIn()`, `adminOptUserOut()` - Allow admins to opt users in/out on their behalf
+- Opt-ins are per-organization but typically created for all user's organizations at once
+- **Important**: Users must explicitly opt in to appear in the lunch ordering system
 
 ### Route Structure
 
 - `/` - Home/landing page
 - `/orders` - User order submission
-- `/opt-out/success` - Opt-out confirmation page
+- `/opt-in/success` - Opt-in confirmation page
 - `/admin/*` - Admin routes (protected by `isUserAdmin()` check):
   - `/admin` - Restaurant management
   - `/admin/orders` - View/manage all orders
@@ -114,8 +116,8 @@ All in `src/routes/api/`:
 
 - `/api/orders` - Create/manage orders
 - `/api/restaurants` - Restaurant CRUD
-- `/api/opt-out` - Opt-out functionality
-- `/api/admin/*` - Admin-only endpoints for users, orders, organizations, opt-outs
+- `/api/opt-in` - Opt-in functionality
+- `/api/admin/*` - Admin-only endpoints for users, orders, organizations, opt-ins
 
 ### Testing Setup
 

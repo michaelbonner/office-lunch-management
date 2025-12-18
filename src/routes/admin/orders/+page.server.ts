@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db';
-import { getOptedOutUsers, getTodayDate } from '$lib/server/opt-out';
+import { getOptedInUsers, getNotOptedInUsers, getTodayDate } from '$lib/server/opt-in';
 import { getUsersInSameOrganizations, isUserAdmin } from '$lib/server/organization';
 import { restaurant } from '../../../../drizzle/schema';
 import type { PageServerLoad } from './$types';
@@ -25,13 +25,17 @@ export const load: PageServerLoad = async ({ locals }) => {
 	// Load users in the same organization(s)
 	const allUsers = await getUsersInSameOrganizations(user.id);
 
-	// Load opted-out users for today
-	const optedOutUsers = await getOptedOutUsers(user.id, getTodayDate());
+	// Load opted-in users for today
+	const optedInUsers = await getOptedInUsers(user.id, getTodayDate());
+
+	// Load users who haven't opted in for today
+	const notOptedInUsers = await getNotOptedInUsers(user.id, getTodayDate());
 
 	return {
 		restaurants: allRestaurants,
 		users: allUsers,
-		optedOutUsers,
+		optedInUsers,
+		notOptedInUsers,
 		user
 	};
 };

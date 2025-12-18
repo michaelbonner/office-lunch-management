@@ -1,15 +1,15 @@
 import { relations } from "drizzle-orm/relations";
-import { user, optOut, session, account, restaurant, order, organization, member, invitation } from "./schema";
+import { user, optIn, session, account, restaurant, order, organization, member, invitation } from "./schema";
 
-export const optOutRelations = relations(optOut, ({one}) => ({
+export const optInRelations = relations(optIn, ({one}) => ({
 	user: one(user, {
-		fields: [optOut.userId],
+		fields: [optIn.userId],
 		references: [user.id]
 	}),
 }));
 
 export const userRelations = relations(user, ({many}) => ({
-	optOuts: many(optOut),
+	optIns: many(optIn),
 	sessions: many(session),
 	accounts: many(account),
 	members: many(member),
