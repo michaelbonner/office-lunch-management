@@ -7,4 +7,4 @@ pre-commit:
   commands:
     prettier:
       glob: '*.{js,jsx,ts,tsx,json,css,scss,md,html,vue,svelte}' # Adjust file types as needed
-      run: bunx prettier --write {staged_files}
+      run: bunx prettier --write {staged_files} && git add {staged_files}
