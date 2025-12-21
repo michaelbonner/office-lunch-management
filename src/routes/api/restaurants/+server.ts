@@ -1,8 +1,9 @@
 import { db } from '$lib/server/db';
-import { isUserAdmin } from '$lib/server/organization';
+import { isUserAdmin, getUserOrganizations } from '$lib/server/organization';
 import { restaurant } from '../../../../drizzle/schema';
 import type { RequestHandler } from './$types';
 import { error, json } from '@sveltejs/kit';
+import { eq } from 'drizzle-orm';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	// Check if user is authenticated and is an admin
@@ -19,7 +20,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 	// Parse and validate request body
 	const body = await request.json();
-	const { name, menuLink } = body;
+	const { name, menuLink, organizationId } = body;
 
 	if (!name || typeof name !== 'string' || name.trim().length === 0) {
 		throw error(400, 'Restaurant name is required');
@@ -29,11 +30,26 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		throw error(400, 'Menu link is required');
 	}
 
+	// Validate organizationId
+	if (!organizationId || typeof organizationId !== 'string') {
+		throw error(400, 'Organization ID is required');
+	}
+
 	// Validate URL format
 	try {
 		new URL(menuLink);
 	} catch {
 		throw error(400, 'Menu link must be a valid URL');
+	}
+
+	// Verify user is admin in this organization
+	const userOrgs = await getUserOrganizations(user.id);
+	const hasAdminAccess = userOrgs.some(
+		(org) => org.id === organizationId && (org.role === 'admin' || org.role === 'owner')
+	);
+
+	if (!hasAdminAccess) {
+		throw error(403, 'Forbidden: You do not have admin access to this organization');
 	}
 
 	// Insert restaurant into database
@@ -42,16 +58,29 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		.values({
 			id: crypto.randomUUID(),
 			name: name.trim(),
-			menuLink: menuLink.trim()
+			menuLink: menuLink.trim(),
+			organizationId
 		})
 		.returning();
 
 	return json(newRestaurant, { status: 201 });
 };
 
-export const GET: RequestHandler = async () => {
-	// Get all restaurants (public endpoint)
-	const allRestaurants = await db.select().from(restaurant);
+export const GET: RequestHandler = async ({ locals }) => {
+	const user = locals.user;
+	const activeOrgId = locals.activeOrganizationId;
 
-	return json(allRestaurants);
+	// Return empty array if user is not authenticated or has no active org
+	if (!user || !activeOrgId) {
+		return json([]);
+	}
+
+	// Get restaurants for active organization
+	const orgRestaurants = await db
+		.select()
+		.from(restaurant)
+		.where(eq(restaurant.organizationId, activeOrgId))
+		.orderBy(restaurant.name);
+
+	return json(orgRestaurants);
 };

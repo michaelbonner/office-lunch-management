@@ -1,4 +1,5 @@
 <script lang="ts">
+	import OrganizationSelector from '$lib/components/OrganizationSelector.svelte';
 	import RestaurantForm from '$lib/components/RestaurantForm.svelte';
 	import UserForm from '$lib/components/UserForm.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
@@ -235,7 +236,13 @@
 			<h1 class="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
 			<p class="text-muted-foreground">Manage your organization's restaurants and users.</p>
 		</div>
-		<Button variant="outline" href="/" class="gap-2">← Back to Home</Button>
+		<div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+			<OrganizationSelector
+				organizations={data.userOrganizations || []}
+				activeOrganizationId={data.activeOrganizationId}
+			/>
+			<Button variant="outline" href="/" class="gap-2">← Back to Home</Button>
+		</div>
 	</div>
 
 	<!-- Tabs Navigation -->
@@ -276,7 +283,11 @@
 						</p>
 					</div>
 					<div class="rounded-lg border bg-card p-6 shadow-sm">
-						<RestaurantForm onSuccess={refreshRestaurants} />
+						<RestaurantForm
+							onSuccess={refreshRestaurants}
+							organizations={data.userOrganizations || []}
+							activeOrganizationId={data.activeOrganizationId}
+						/>
 					</div>
 				</div>
 			</div>

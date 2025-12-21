@@ -1,9 +1,9 @@
 import { db } from '$lib/server/db';
 import { isUserAdmin } from '$lib/server/organization';
-import { order } from '../../../../../drizzle/schema';
+import { order, restaurant } from '../../../../../drizzle/schema';
 import type { RequestHandler } from './$types';
 import { error, json } from '@sveltejs/kit';
-import { sql } from 'drizzle-orm';
+import { sql, and, eq } from 'drizzle-orm';
 
 export const POST: RequestHandler = async ({ locals, request }) => {
 	const user = locals.user;
@@ -23,6 +23,23 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 
 	if (!userId || !restaurantId || !orderDetails) {
 		throw error(400, 'User ID, restaurant ID, and order details are required');
+	}
+
+	const activeOrgId = locals.activeOrganizationId;
+
+	if (!activeOrgId) {
+		throw error(400, 'No active organization');
+	}
+
+	// Verify restaurant belongs to active organization
+	const restaurants = await db
+		.select()
+		.from(restaurant)
+		.where(and(eq(restaurant.id, restaurantId), eq(restaurant.organizationId, activeOrgId)))
+		.limit(1);
+
+	if (restaurants.length === 0) {
+		throw error(403, 'Restaurant not in your organization');
 	}
 
 	try {
@@ -73,6 +90,23 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	if (!restaurantId) {
 		throw error(400, 'Restaurant ID is required');
+	}
+
+	const activeOrgId = locals.activeOrganizationId;
+
+	if (!activeOrgId) {
+		throw error(400, 'No active organization');
+	}
+
+	// Verify restaurant belongs to active organization
+	const restaurants = await db
+		.select()
+		.from(restaurant)
+		.where(and(eq(restaurant.id, restaurantId), eq(restaurant.organizationId, activeOrgId)))
+		.limit(1);
+
+	if (restaurants.length === 0) {
+		throw error(403, 'Restaurant not in your organization');
 	}
 
 	// Get all orders for the restaurant with user information using a JOIN

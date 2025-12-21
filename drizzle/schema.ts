@@ -118,13 +118,32 @@ export const user = pgTable(
 	(table) => [unique('user_email_key').on(table.email)]
 );
 
-export const restaurant = pgTable('restaurant', {
-	id: text().primaryKey().notNull(),
-	name: text().notNull(),
-	menuLink: text('menu_link').notNull(),
-	createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
-	updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull()
-});
+export const restaurant = pgTable(
+	'restaurant',
+	{
+		id: text().primaryKey().notNull(),
+		name: text().notNull(),
+		menuLink: text('menu_link').notNull(),
+		organizationId: text('organization_id').notNull(),
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull(),
+		updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull()
+	},
+	(table) => [
+		foreignKey({
+			columns: [table.organizationId],
+			foreignColumns: [organization.id],
+			name: 'restaurant_organization_id_fkey'
+		}).onDelete('cascade'),
+		index('restaurant_organizationId_idx').using(
+			'btree',
+			table.organizationId.asc().nullsLast().op('text_ops')
+		)
+	]
+);
 
 export const order = pgTable(
 	'order',

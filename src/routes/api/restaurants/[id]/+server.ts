@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db';
-import { isUserAdmin } from '$lib/server/organization';
+import { isUserAdmin, getUserOrganizations } from '$lib/server/organization';
 import { restaurant } from '../../../../../drizzle/schema';
 import type { RequestHandler } from './$types';
 import { error, json } from '@sveltejs/kit';
@@ -22,6 +22,27 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 
 	if (!restaurantId) {
 		throw error(400, 'Restaurant ID is required');
+	}
+
+	// Fetch restaurant to verify organization ownership
+	const existing = await db
+		.select()
+		.from(restaurant)
+		.where(eq(restaurant.id, restaurantId))
+		.limit(1);
+
+	if (existing.length === 0) {
+		throw error(404, 'Restaurant not found');
+	}
+
+	// Verify user is admin in restaurant's organization
+	const userOrgs = await getUserOrganizations(user.id);
+	const hasAccess = userOrgs.some(
+		(org) => org.id === existing[0].organizationId && (org.role === 'admin' || org.role === 'owner')
+	);
+
+	if (!hasAccess) {
+		throw error(403, 'Forbidden - You do not have access to this restaurant');
 	}
 
 	const body = await request.json();
@@ -81,6 +102,27 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
 
 	if (!restaurantId) {
 		throw error(400, 'Restaurant ID is required');
+	}
+
+	// Fetch restaurant to verify organization ownership
+	const existing = await db
+		.select()
+		.from(restaurant)
+		.where(eq(restaurant.id, restaurantId))
+		.limit(1);
+
+	if (existing.length === 0) {
+		throw error(404, 'Restaurant not found');
+	}
+
+	// Verify user is admin in restaurant's organization
+	const userOrgs = await getUserOrganizations(user.id);
+	const hasAccess = userOrgs.some(
+		(org) => org.id === existing[0].organizationId && (org.role === 'admin' || org.role === 'owner')
+	);
+
+	if (!hasAccess) {
+		throw error(403, 'Forbidden - You do not have access to this restaurant');
 	}
 
 	try {

@@ -12,8 +12,17 @@ export const load: PageServerLoad = async ({ locals }) => {
 		throw redirect(303, '/');
 	}
 
-	// Load all restaurants
-	const allRestaurants = await db.select().from(restaurant).orderBy(restaurant.name);
+	const activeOrgId = locals.activeOrganizationId;
+	const userOrgs = locals.userOrganizations || [];
+
+	// Load restaurants for active organization
+	const allRestaurants = activeOrgId
+		? await db
+				.select()
+				.from(restaurant)
+				.where(eq(restaurant.organizationId, activeOrgId))
+				.orderBy(restaurant.name)
+		: [];
 
 	// Load user's orders
 	const userOrders = await db.select().from(order).where(eq(order.userId, user.id));
@@ -24,6 +33,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 	return {
 		restaurants: allRestaurants,
 		orders: ordersMap,
-		user
+		user,
+		activeOrganizationId: activeOrgId,
+		userOrganizations: userOrgs
 	};
 };

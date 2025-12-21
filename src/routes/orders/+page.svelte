@@ -1,5 +1,6 @@
 <script lang="ts">
 	import OrderForm from '$lib/components/OrderForm.svelte';
+	import OrganizationSelector from '$lib/components/OrganizationSelector.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import type { PageData } from './$types';
 	import { Utensils } from '@lucide/svelte';
@@ -16,12 +17,18 @@
 </script>
 
 <div class="container mx-auto max-w-4xl px-4 py-8">
-	<div class="mb-8">
-		<h1 class="mb-2 text-3xl font-bold">My Lunch Order Preferences</h1>
-		<p class="text-muted-foreground">
-			Save your preferred lunch orders for each restaurant. View the menu first to decide what you
-			want!
-		</p>
+	<div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+		<div>
+			<h1 class="mb-2 text-3xl font-bold">My Lunch Order Preferences</h1>
+			<p class="text-muted-foreground">
+				Save your preferred lunch orders for each restaurant. View the menu first to decide what you
+				want!
+			</p>
+		</div>
+		<OrganizationSelector
+			organizations={data.userOrganizations || []}
+			activeOrganizationId={data.activeOrganizationId}
+		/>
 	</div>
 
 	{#if data.restaurants.length === 0}

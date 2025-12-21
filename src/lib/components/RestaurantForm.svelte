@@ -3,15 +3,25 @@
 
 	interface Props {
 		onSuccess?: () => void;
+		organizations: Array<{ id: string; name: string; role: string }>;
+		activeOrganizationId?: string;
 	}
 
-	let { onSuccess }: Props = $props();
+	let { onSuccess, organizations, activeOrganizationId }: Props = $props();
 
 	let name = $state('');
 	let menuLink = $state('');
+	let organizationId = $state(activeOrganizationId || (organizations[0]?.id ?? ''));
 	let loading = $state(false);
 	let error = $state('');
 	let success = $state(false);
+
+	// Update organizationId when activeOrganizationId changes
+	$effect(() => {
+		if (activeOrganizationId) {
+			organizationId = activeOrganizationId;
+		}
+	});
 
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
@@ -25,7 +35,7 @@
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({ name, menuLink })
+				body: JSON.stringify({ name, menuLink, organizationId })
 			});
 
 			if (!response.ok) {
@@ -49,6 +59,24 @@
 </script>
 
 <form onsubmit={handleSubmit} class="space-y-4">
+	<!-- Organization Selector (only show if multiple orgs) -->
+	{#if organizations.length > 1}
+		<div>
+			<label for="organization" class="mb-1.5 block text-sm font-medium"> Organization </label>
+			<select
+				id="organization"
+				bind:value={organizationId}
+				required
+				disabled={loading}
+				class="w-full rounded-md border bg-background px-3 py-2 focus:ring-2 focus:ring-ring focus:outline-none disabled:opacity-50"
+			>
+				{#each organizations as org (org.id)}
+					<option value={org.id}>{org.name}</option>
+				{/each}
+			</select>
+		</div>
+	{/if}
+
 	<div>
 		<label for="name" class="mb-1.5 block text-sm font-medium"> Restaurant Name </label>
 		<input

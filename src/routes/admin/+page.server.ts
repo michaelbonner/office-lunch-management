@@ -3,6 +3,7 @@ import { isUserAdmin } from '$lib/server/organization';
 import { restaurant } from '../../../drizzle/schema';
 import type { PageServerLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
+import { eq } from 'drizzle-orm';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const user = locals.user;
@@ -18,11 +19,22 @@ export const load: PageServerLoad = async ({ locals }) => {
 		throw redirect(303, '/');
 	}
 
-	// Load all restaurants
-	const allRestaurants = await db.select().from(restaurant).orderBy(restaurant.name);
+	const activeOrgId = locals.activeOrganizationId;
+	const userOrgs = locals.userOrganizations || [];
+
+	// Load restaurants for active organization only
+	const allRestaurants = activeOrgId
+		? await db
+				.select()
+				.from(restaurant)
+				.where(eq(restaurant.organizationId, activeOrgId))
+				.orderBy(restaurant.name)
+		: [];
 
 	return {
 		restaurants: allRestaurants,
-		user
+		user,
+		activeOrganizationId: activeOrgId,
+		userOrganizations: userOrgs
 	};
 };

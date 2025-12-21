@@ -4,6 +4,7 @@ import { getUsersInSameOrganizations, isUserAdmin } from '$lib/server/organizati
 import { restaurant } from '../../../../drizzle/schema';
 import type { PageServerLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
+import { eq } from 'drizzle-orm';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const user = locals.user;
@@ -19,8 +20,12 @@ export const load: PageServerLoad = async ({ locals }) => {
 		throw redirect(303, '/');
 	}
 
-	// Load all restaurants
-	const allRestaurants = await db.select().from(restaurant);
+	const activeOrgId = locals.activeOrganizationId;
+
+	// Load restaurants for active organization only
+	const allRestaurants = activeOrgId
+		? await db.select().from(restaurant).where(eq(restaurant.organizationId, activeOrgId))
+		: [];
 
 	// Load users in the same organization(s)
 	const allUsers = await getUsersInSameOrganizations(user.id);

@@ -10,6 +10,13 @@ declare global {
 		interface Locals {
 			session: SessionData extends { session: infer S } ? S : null;
 			user: SessionData extends { user: infer U } ? U : null;
+			activeOrganizationId?: string;
+			userOrganizations?: Array<{
+				id: string;
+				name: string;
+				slug: string;
+				role: string;
+			}>;
 		}
 		// interface PageData {}
 		// interface PageState {}
