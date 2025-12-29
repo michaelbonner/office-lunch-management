@@ -11,16 +11,14 @@
 
 	let name = $state('');
 	let menuLink = $state('');
-	let organizationId = $state(activeOrganizationId || (organizations[0]?.id ?? ''));
+	let organizationId = $state('');
 	let loading = $state(false);
 	let error = $state('');
 	let success = $state(false);
 
-	// Update organizationId when activeOrganizationId changes
+	// Initialize and update organizationId reactively
 	$effect(() => {
-		if (activeOrganizationId) {
-			organizationId = activeOrganizationId;
-		}
+		organizationId = activeOrganizationId || (organizations[0]?.id ?? '');
 	});
 
 	async function handleSubmit(e: Event) {
