@@ -176,7 +176,7 @@ export const organization = pgTable(
 		name: text().notNull(),
 		slug: text().notNull(),
 		logo: text(),
-		createdAt: timestamp({ withTimezone: true, mode: 'string' }).notNull(),
+		createdAt: timestamp({ withTimezone: true, mode: 'string' }).notNull().defaultNow(),
 		metadata: text()
 	},
 	(table) => [unique('organization_slug_key').on(table.slug)]
@@ -189,7 +189,7 @@ export const member = pgTable(
 		organizationId: text().notNull(),
 		userId: text().notNull(),
 		role: text().notNull(),
-		createdAt: timestamp({ withTimezone: true, mode: 'string' }).notNull()
+		createdAt: timestamp({ withTimezone: true, mode: 'string' }).notNull().defaultNow()
 	},
 	(table) => [
 		index('member_organizationId_idx').using(
