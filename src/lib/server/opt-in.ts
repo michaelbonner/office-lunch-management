@@ -27,9 +27,7 @@ export async function optUserIn(userId: string, date: string = getTodayDate()) {
 				id: crypto.randomUUID(),
 				userId,
 				organizationId: org.organizationId,
-				optInDate: date,
-				createdAt: sql`NOW()`,
-				updatedAt: sql`NOW()`
+				optInDate: date
 			}));
 
 			await db.insert(optIn).values(values).onConflictDoNothing();
