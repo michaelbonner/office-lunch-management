@@ -78,10 +78,16 @@ export async function isUserOptedIn(
 export async function getOptedInUsers(adminUserId: string, date: string = getTodayDate()) {
 	try {
 		// Get admin's organization IDs
-		const adminOrgIds = db
+		const adminOrgIdsResult = await db
 			.select({ organizationId: member.organizationId })
 			.from(member)
 			.where(eq(member.userId, adminUserId));
+
+		const adminOrgIds = adminOrgIdsResult.map((r) => r.organizationId);
+
+		if (adminOrgIds.length === 0) {
+			return [];
+		}
 
 		const users = await db
 			.selectDistinct({
@@ -94,7 +100,7 @@ export async function getOptedInUsers(adminUserId: string, date: string = getTod
 			.from(optIn)
 			.innerJoin(user, eq(user.id, optIn.userId))
 			.where(and(eq(optIn.optInDate, date), inArray(optIn.organizationId, adminOrgIds)))
-			.orderBy(optIn.createdAt);
+			.orderBy(sql`${optIn.createdAt} DESC`);
 
 		return users;
 	} catch (error) {
@@ -109,16 +115,24 @@ export async function getOptedInUsers(adminUserId: string, date: string = getTod
 export async function getNotOptedInUsers(adminUserId: string, date: string = getTodayDate()) {
 	try {
 		// Get admin's organization IDs
-		const adminOrgIds = db
+		const adminOrgIdsResult = await db
 			.select({ organizationId: member.organizationId })
 			.from(member)
 			.where(eq(member.userId, adminUserId));
 
+		const adminOrgIds = adminOrgIdsResult.map((r) => r.organizationId);
+
+		if (adminOrgIds.length === 0) {
+			return [];
+		}
+
 		// Get users who are opted in for this date in admin's orgs
-		const optedInUserIds = db
+		const optedInUserIdsResult = await db
 			.select({ userId: optIn.userId })
 			.from(optIn)
 			.where(and(eq(optIn.optInDate, date), inArray(optIn.organizationId, adminOrgIds)));
+
+		const optedInUserIds = optedInUserIdsResult.map((r) => r.userId);
 
 		// Get all users in admin's orgs who are NOT opted in
 		const users = await db
@@ -129,7 +143,11 @@ export async function getNotOptedInUsers(adminUserId: string, date: string = get
 			})
 			.from(user)
 			.innerJoin(member, eq(member.userId, user.id))
-			.where(and(inArray(member.organizationId, adminOrgIds), notInArray(user.id, optedInUserIds)))
+			.where(
+				optedInUserIds.length > 0
+					? and(inArray(member.organizationId, adminOrgIds), notInArray(user.id, optedInUserIds))
+					: inArray(member.organizationId, adminOrgIds)
+			)
 			.orderBy(user.name);
 
 		return users;
