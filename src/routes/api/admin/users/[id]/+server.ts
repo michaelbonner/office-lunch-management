@@ -5,9 +5,10 @@ import {
 	getUsersInSameOrganizations,
 	updateUserRoleInSharedOrganizations
 } from '$lib/server/organization';
+import { user as userTable } from '../../../../../../drizzle/schema';
 import type { RequestHandler } from './$types';
 import { error, json } from '@sveltejs/kit';
-import { sql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 export const DELETE: RequestHandler = async ({ locals, params }) => {
 	const user = locals.user;
@@ -88,11 +89,13 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 		}
 
 		// Update the user's name
-		await db.execute(sql`
-			UPDATE "user"
-			SET name = ${name.trim()}, "updatedAt" = NOW()
-			WHERE id = ${targetUserId}
-		`);
+		await db
+			.update(userTable)
+			.set({
+				name: name.trim(),
+				updatedAt: new Date().toISOString()
+			})
+			.where(eq(userTable.id, targetUserId));
 
 		// Update the user's role if provided
 		let updatedRole = targetUser.memberRole; // Default to existing role

@@ -1,9 +1,9 @@
 import { db } from '$lib/server/db';
 import { isUserAdmin } from '$lib/server/organization';
-import { order, restaurant } from '../../../../../drizzle/schema';
+import { order, restaurant, user as userTable } from '../../../../../drizzle/schema';
 import type { RequestHandler } from './$types';
 import { error, json } from '@sveltejs/kit';
-import { sql, and, eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 export const POST: RequestHandler = async ({ locals, request }) => {
 	const user = locals.user;
@@ -110,30 +110,21 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	}
 
 	// Get all orders for the restaurant with user information using a JOIN
-	const ordersWithUsers = await db.execute<{
-		id: string;
-		user_id: string;
-		restaurant_id: string;
-		order_details: string;
-		created_at: Date;
-		updated_at: Date;
-		user_name: string | null;
-		user_email: string | null;
-	}>(sql`
-		SELECT
-			o.id,
-			o.user_id,
-			o.restaurant_id,
-			o.order_details,
-			o.created_at,
-			o.updated_at,
-			u.name as user_name,
-			u.email as user_email
-		FROM "order" o
-		LEFT JOIN "user" u ON o.user_id = u.id
-		WHERE o.restaurant_id = ${restaurantId}
-		ORDER BY o.created_at ASC
-	`);
+	const ordersWithUsers = await db
+		.select({
+			id: order.id,
+			user_id: order.userId,
+			restaurant_id: order.restaurantId,
+			order_details: order.orderDetails,
+			created_at: order.createdAt,
+			updated_at: order.updatedAt,
+			user_name: userTable.name,
+			user_email: userTable.email
+		})
+		.from(order)
+		.leftJoin(userTable, eq(order.userId, userTable.id))
+		.where(eq(order.restaurantId, restaurantId))
+		.orderBy(order.createdAt);
 
 	// Transform the results to match the expected format
 	const result = ordersWithUsers.map((row) => ({

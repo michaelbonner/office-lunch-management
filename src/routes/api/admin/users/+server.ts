@@ -5,9 +5,10 @@ import {
 	getUsersInSameOrganizations,
 	isUserAdmin
 } from '$lib/server/organization';
+import { user as userTable, member } from '../../../../../drizzle/schema';
 import type { RequestHandler } from './$types';
 import { error, json } from '@sveltejs/kit';
-import { sql } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 
 export const POST: RequestHandler = async ({ locals, request }) => {
 	const user = locals.user;
@@ -46,17 +47,16 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		const userRole = role && (role === 'admin' || role === 'user') ? role : 'user';
 
 		// Check if user already exists
-		const existingUsers = await db.execute<{
-			id: string;
-			email: string;
-			name: string;
-			role: string | null;
-		}>(sql`
-			SELECT id, email, name, role
-			FROM "user"
-			WHERE email = ${email}
-			LIMIT 1
-		`);
+		const existingUsers = await db
+			.select({
+				id: userTable.id,
+				email: userTable.email,
+				name: userTable.name,
+				role: userTable.role
+			})
+			.from(userTable)
+			.where(eq(userTable.email, email))
+			.limit(1);
 
 		let userId: string;
 		let message: string;
@@ -66,14 +66,11 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 			const existingUser = existingUsers[0];
 			userId = existingUser.id;
 
-			const existingMembership = await db.execute<{
-				id: string;
-			}>(sql`
-				SELECT id
-				FROM member
-				WHERE "userId" = ${userId} AND "organizationId" = ${adminOrgId}
-				LIMIT 1
-			`);
+			const existingMembership = await db
+				.select({ id: member.id })
+				.from(member)
+				.where(and(eq(member.userId, userId), eq(member.organizationId, adminOrgId)))
+				.limit(1);
 
 			if (existingMembership.length > 0) {
 				throw error(400, 'User is already a member of your organization');
@@ -86,10 +83,15 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 			// Create new user
 			userId = crypto.randomUUID();
 
-			await db.execute(sql`
-				INSERT INTO "user" (id, email, name, role, "emailVerified", "createdAt", "updatedAt")
-				VALUES (${userId}, ${email}, ${name}, 'user', false, NOW(), NOW())
-			`);
+			await db.insert(userTable).values({
+				id: userId,
+				email,
+				name,
+				role: 'user',
+				emailVerified: false,
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString()
+			});
 
 			// Add user to admin's organization
 			await addUserToOrganization(userId, adminOrgId, userRole === 'admin' ? 'admin' : 'member');

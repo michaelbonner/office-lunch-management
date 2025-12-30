@@ -1,7 +1,7 @@
-import { optIn } from '../../../drizzle/schema';
+import { optIn, member, user } from '../../../drizzle/schema';
 import { db } from './db';
 import { formatInTimeZone } from 'date-fns-tz';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, inArray, notInArray } from 'drizzle-orm';
 
 /**
  * Get today's date in YYYY-MM-DD format (local timezone)
@@ -16,19 +16,23 @@ export function getTodayDate(timezone: string = 'America/Denver'): string {
 export async function optUserIn(userId: string, date: string = getTodayDate()) {
 	try {
 		// Get all organizations the user belongs to
-		const userOrgs = await db.execute<{ organizationId: string }>(sql`
-			SELECT "organizationId"
-			FROM member
-			WHERE "userId" = ${userId}
-		`);
+		const userOrgs = await db
+			.select({ organizationId: member.organizationId })
+			.from(member)
+			.where(eq(member.userId, userId));
 
 		// Insert opt-in records for each organization
-		for (const org of userOrgs) {
-			await db.execute(sql`
-				INSERT INTO opt_in (id, user_id, organization_id, opt_in_date, created_at, updated_at)
-				VALUES (gen_random_uuid(), ${userId}, ${org.organizationId}, ${date}, NOW(), NOW())
-				ON CONFLICT (user_id, organization_id, opt_in_date) DO NOTHING
-			`);
+		if (userOrgs.length > 0) {
+			const values = userOrgs.map((org) => ({
+				id: crypto.randomUUID(),
+				userId,
+				organizationId: org.organizationId,
+				optInDate: date,
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString()
+			}));
+
+			await db.insert(optIn).values(values).onConflictDoNothing();
 		}
 
 		return { success: true, organizationsCount: userOrgs.length };
@@ -43,10 +47,7 @@ export async function optUserIn(userId: string, date: string = getTodayDate()) {
  */
 export async function optUserOut(userId: string, date: string = getTodayDate()) {
 	try {
-		await db.execute(sql`
-			DELETE FROM opt_in
-			WHERE user_id = ${userId} AND opt_in_date = ${date}
-		`);
+		await db.delete(optIn).where(and(eq(optIn.userId, userId), eq(optIn.optInDate, date)));
 
 		return { success: true };
 	} catch (error) {
@@ -76,24 +77,24 @@ export async function isUserOptedIn(
  */
 export async function getOptedInUsers(adminUserId: string, date: string = getTodayDate()) {
 	try {
-		const users = await db.execute<{
-			id: string;
-			email: string;
-			name: string;
-			createdAt: Date;
-			organizationId: string;
-		}>(sql`
-			SELECT DISTINCT u.id, u.email, u.name, o.created_at as "createdAt", o.organization_id as "organizationId"
-			FROM opt_in o
-			INNER JOIN "user" u ON u.id = o.user_id
-			WHERE o.opt_in_date = ${date}
-				AND o.organization_id IN (
-					SELECT m."organizationId"
-					FROM member m
-					WHERE m."userId" = ${adminUserId}
-				)
-			ORDER BY o.created_at DESC
-		`);
+		// Get admin's organization IDs
+		const adminOrgIds = db
+			.select({ organizationId: member.organizationId })
+			.from(member)
+			.where(eq(member.userId, adminUserId));
+
+		const users = await db
+			.selectDistinct({
+				id: user.id,
+				email: user.email,
+				name: user.name,
+				createdAt: optIn.createdAt,
+				organizationId: optIn.organizationId
+			})
+			.from(optIn)
+			.innerJoin(user, eq(user.id, optIn.userId))
+			.where(and(eq(optIn.optInDate, date), inArray(optIn.organizationId, adminOrgIds)))
+			.orderBy(optIn.createdAt);
 
 		return users;
 	} catch (error) {
@@ -107,31 +108,29 @@ export async function getOptedInUsers(adminUserId: string, date: string = getTod
  */
 export async function getNotOptedInUsers(adminUserId: string, date: string = getTodayDate()) {
 	try {
-		const users = await db.execute<{
-			id: string;
-			email: string;
-			name: string;
-		}>(sql`
-			SELECT DISTINCT u.id, u.email, u.name
-			FROM "user" u
-			INNER JOIN member m ON m."userId" = u.id
-			WHERE m."organizationId" IN (
-				SELECT "organizationId"
-				FROM member
-				WHERE "userId" = ${adminUserId}
-			)
-			AND u.id NOT IN (
-				SELECT user_id
-				FROM opt_in
-				WHERE opt_in_date = ${date}
-					AND organization_id IN (
-						SELECT "organizationId"
-						FROM member
-						WHERE "userId" = ${adminUserId}
-					)
-			)
-			ORDER BY u.name
-		`);
+		// Get admin's organization IDs
+		const adminOrgIds = db
+			.select({ organizationId: member.organizationId })
+			.from(member)
+			.where(eq(member.userId, adminUserId));
+
+		// Get users who are opted in for this date in admin's orgs
+		const optedInUserIds = db
+			.select({ userId: optIn.userId })
+			.from(optIn)
+			.where(and(eq(optIn.optInDate, date), inArray(optIn.organizationId, adminOrgIds)));
+
+		// Get all users in admin's orgs who are NOT opted in
+		const users = await db
+			.selectDistinct({
+				id: user.id,
+				email: user.email,
+				name: user.name
+			})
+			.from(user)
+			.innerJoin(member, eq(member.userId, user.id))
+			.where(and(inArray(member.organizationId, adminOrgIds), notInArray(user.id, optedInUserIds)))
+			.orderBy(user.name);
 
 		return users;
 	} catch (error) {
@@ -145,15 +144,14 @@ export async function getNotOptedInUsers(adminUserId: string, date: string = get
  */
 export async function getUserOptInStatus(userId: string, date: string = getTodayDate()) {
 	try {
-		const result = await db.execute<{
-			id: string;
-			createdAt: Date;
-		}>(sql`
-			SELECT id, created_at as "createdAt"
-			FROM opt_in
-			WHERE user_id = ${userId} AND opt_in_date = ${date}
-			LIMIT 1
-		`);
+		const result = await db
+			.select({
+				id: optIn.id,
+				createdAt: optIn.createdAt
+			})
+			.from(optIn)
+			.where(and(eq(optIn.userId, userId), eq(optIn.optInDate, date)))
+			.limit(1);
 
 		if (result.length === 0) {
 			return { optedIn: false, timestamp: null };
