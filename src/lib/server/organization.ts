@@ -1,6 +1,6 @@
 import { organization, member, user } from '../../../drizzle/schema';
 import { db } from './db';
-import { sql, eq, inArray, and, notExists } from 'drizzle-orm';
+import { sql, eq, inArray, and, notExists, asc } from 'drizzle-orm';
 
 /**
  * Create a new organization for a user
@@ -253,7 +253,7 @@ export async function getAllOrganizationsWithMembers() {
 			.from(organization)
 			.leftJoin(member, eq(member.organizationId, organization.id))
 			.leftJoin(user, eq(user.id, member.userId))
-			.orderBy(sql`${organization.name} ASC, ${user.name} ASC`);
+			.orderBy(asc(organization.name), asc(user.name));
 
 		// Group by organization
 		const organizationsMap = new Map<
