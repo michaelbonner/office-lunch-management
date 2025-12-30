@@ -1,7 +1,7 @@
 import { optIn, member, user } from '../../../drizzle/schema';
 import { db } from './db';
 import { formatInTimeZone } from 'date-fns-tz';
-import { and, eq, inArray, notInArray } from 'drizzle-orm';
+import { and, eq, inArray, notInArray, sql } from 'drizzle-orm';
 
 /**
  * Get today's date in YYYY-MM-DD format (local timezone)
@@ -28,8 +28,8 @@ export async function optUserIn(userId: string, date: string = getTodayDate()) {
 				userId,
 				organizationId: org.organizationId,
 				optInDate: date,
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString()
+				createdAt: sql`NOW()`,
+				updatedAt: sql`NOW()`
 			}));
 
 			await db.insert(optIn).values(values).onConflictDoNothing();

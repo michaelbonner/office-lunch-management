@@ -8,7 +8,7 @@ import {
 import { user as userTable, member } from '../../../../../drizzle/schema';
 import type { RequestHandler } from './$types';
 import { error, json } from '@sveltejs/kit';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 
 export const POST: RequestHandler = async ({ locals, request }) => {
 	const user = locals.user;
@@ -89,8 +89,8 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 				name,
 				role: 'user',
 				emailVerified: false,
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString()
+				createdAt: sql`NOW()`,
+				updatedAt: sql`NOW()`
 			});
 
 			// Add user to admin's organization
