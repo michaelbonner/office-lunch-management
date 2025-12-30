@@ -5,10 +5,10 @@ import {
 	getUsersInSameOrganizations,
 	isUserAdmin
 } from '$lib/server/organization';
-import { user as userTable, member } from '../../../../../drizzle/schema';
+import { member, user as userTable } from '../../../../../drizzle/schema';
 import type { RequestHandler } from './$types';
 import { error, json } from '@sveltejs/kit';
-import { eq, and, sql } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 export const POST: RequestHandler = async ({ locals, request }) => {
 	const user = locals.user;
@@ -88,9 +88,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 				email,
 				name,
 				role: 'user',
-				emailVerified: false,
-				createdAt: sql`NOW()`,
-				updatedAt: sql`NOW()`
+				emailVerified: false
 			});
 
 			// Add user to admin's organization
