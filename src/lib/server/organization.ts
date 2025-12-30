@@ -262,7 +262,7 @@ export async function getAllOrganizationsWithMembers() {
 				id: string;
 				name: string;
 				slug: string;
-				createdAt: string | Date;
+				createdAt: string;
 				members: Array<{
 					memberId: string;
 					userId: string;
@@ -270,7 +270,7 @@ export async function getAllOrganizationsWithMembers() {
 					userEmail: string;
 					userRole: string | null;
 					memberRole: string;
-					memberCreatedAt: string | Date;
+					memberCreatedAt: string;
 				}>;
 			}
 		>();
