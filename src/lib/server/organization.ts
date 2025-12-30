@@ -1,6 +1,6 @@
-import { organization, member, user } from '../../../drizzle/schema';
+import { member, organization, user } from '../../../drizzle/schema';
 import { db } from './db';
-import { sql, eq, inArray, and, notExists, asc } from 'drizzle-orm';
+import { and, asc, eq, inArray, notExists } from 'drizzle-orm';
 
 /**
  * Create a new organization for a user
@@ -38,8 +38,7 @@ export async function createOrganizationForUser(
 			id: crypto.randomUUID(),
 			organizationId: org.id,
 			userId,
-			role: 'owner',
-			createdAt: sql`NOW()`
+			role: 'owner'
 		});
 
 		return org;
@@ -97,8 +96,7 @@ export async function addUserToOrganization(
 			id: crypto.randomUUID(),
 			organizationId,
 			userId,
-			role,
-			createdAt: sql`NOW()`
+			role
 		});
 	} catch (error) {
 		console.error('Error adding user to organization:', error);

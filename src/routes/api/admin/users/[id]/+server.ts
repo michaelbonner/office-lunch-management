@@ -1,14 +1,14 @@
 import { db } from '$lib/server/db';
 import {
+	getUsersInSameOrganizations,
 	isUserAdmin,
 	removeUserFromSharedOrganizations,
-	getUsersInSameOrganizations,
 	updateUserRoleInSharedOrganizations
 } from '$lib/server/organization';
 import { user as userTable } from '../../../../../../drizzle/schema';
 import type { RequestHandler } from './$types';
 import { error, json } from '@sveltejs/kit';
-import { eq, sql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 export const DELETE: RequestHandler = async ({ locals, params }) => {
 	const user = locals.user;
@@ -92,8 +92,7 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 		await db
 			.update(userTable)
 			.set({
-				name: name.trim(),
-				updatedAt: sql`NOW()`
+				name: name.trim()
 			})
 			.where(eq(userTable.id, targetUserId));
 
