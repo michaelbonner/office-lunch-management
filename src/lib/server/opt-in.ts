@@ -1,7 +1,7 @@
 import { optIn, member, user } from '../../../drizzle/schema';
 import { db } from './db';
 import { formatInTimeZone } from 'date-fns-tz';
-import { and, eq, inArray, notInArray, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, notInArray, sql } from 'drizzle-orm';
 
 /**
  * Get today's date in YYYY-MM-DD format (local timezone)
@@ -100,7 +100,7 @@ export async function getOptedInUsers(adminUserId: string, date: string = getTod
 			.from(optIn)
 			.innerJoin(user, eq(user.id, optIn.userId))
 			.where(and(eq(optIn.optInDate, date), inArray(optIn.organizationId, adminOrgIds)))
-			.orderBy(sql`${optIn.createdAt} DESC`);
+			.orderBy(desc(optIn.createdAt));
 
 		return users;
 	} catch (error) {
