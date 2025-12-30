@@ -84,7 +84,6 @@ File: `src/lib/server/organization.ts`
 Key patterns:
 
 - Organizations auto-created on user signup with slug format: `{email-domain}-{userId-prefix}`
-- All org queries use raw SQL via `db.execute()` for complex joins
 - Helper functions: `getUserOrganizations()`, `isUserAdmin()`, `isUserSystemAdmin()`, `getUsersInSameOrganizations()`, `getAllOrganizationsWithMembers()`
 - Admin access control: Users are admins if they have `admin` or `owner` role in ANY organization
 
@@ -155,9 +154,7 @@ Always check `locals.user` in `+page.server.ts` files. Use `isUserAdmin()` or `i
 
 ### Database Queries
 
-- Simple queries: Use Drizzle query builder (`db.select()`, `db.insert()`, etc.)
-- Complex queries (joins, subqueries): Use raw SQL via `db.execute<TypeHere>(sql`...`)`
-- Always type the result of `db.execute()` with the expected shape
+- Use Drizzle query builder (`db.select()`, `db.insert()`, etc.)
 
 ### Form Components
 
