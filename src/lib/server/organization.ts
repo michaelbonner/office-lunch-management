@@ -23,7 +23,6 @@ export async function createOrganizationForUser(
 				id: crypto.randomUUID(),
 				name,
 				slug,
-				createdAt: sql`NOW()`,
 				metadata: '{}'
 			})
 			.returning({
