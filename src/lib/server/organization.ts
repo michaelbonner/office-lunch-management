@@ -113,10 +113,16 @@ export async function addUserToOrganization(
 export async function getUsersInSameOrganizations(userId: string) {
 	try {
 		// Get organization IDs for the user
-		const userOrgIds = db
+		const userOrgIdsResult = await db
 			.select({ organizationId: member.organizationId })
 			.from(member)
 			.where(eq(member.userId, userId));
+
+		const userOrgIds = userOrgIdsResult.map((r) => r.organizationId);
+
+		if (userOrgIds.length === 0) {
+			return [];
+		}
 
 		// Get all users in those organizations
 		const users = await db
@@ -188,10 +194,16 @@ export async function removeUserFromSharedOrganizations(
 ): Promise<number> {
 	try {
 		// Get organizations that the admin belongs to
-		const adminOrgIds = db
+		const adminOrgIdsResult = await db
 			.select({ organizationId: member.organizationId })
 			.from(member)
 			.where(eq(member.userId, adminUserId));
+
+		const adminOrgIds = adminOrgIdsResult.map((r) => r.organizationId);
+
+		if (adminOrgIds.length === 0) {
+			return 0;
+		}
 
 		// Get organizations that both the admin and target user belong to
 		const sharedOrgs = await db
@@ -241,7 +253,7 @@ export async function getAllOrganizationsWithMembers() {
 			.from(organization)
 			.leftJoin(member, eq(member.organizationId, organization.id))
 			.leftJoin(user, eq(user.id, member.userId))
-			.orderBy(organization.name, user.name);
+			.orderBy(sql`${organization.name} ASC, ${user.name} ASC`);
 
 		// Group by organization
 		const organizationsMap = new Map<
@@ -250,7 +262,7 @@ export async function getAllOrganizationsWithMembers() {
 				id: string;
 				name: string;
 				slug: string;
-				createdAt: string;
+				createdAt: string | Date;
 				members: Array<{
 					memberId: string;
 					userId: string;
@@ -258,7 +270,7 @@ export async function getAllOrganizationsWithMembers() {
 					userEmail: string;
 					userRole: string | null;
 					memberRole: string;
-					memberCreatedAt: string;
+					memberCreatedAt: string | Date;
 				}>;
 			}
 		>();
@@ -306,11 +318,17 @@ export async function updateUserRoleInSharedOrganizations(
 	newRole: 'admin' | 'member'
 ): Promise<number> {
 	try {
-		// Subquery for admin's organizations where they are admin/owner
-		const adminOrgIds = db
+		// Get admin's organizations where they are admin/owner
+		const adminOrgIdsResult = await db
 			.select({ organizationId: member.organizationId })
 			.from(member)
 			.where(and(eq(member.userId, adminUserId), inArray(member.role, ['admin', 'owner'])));
+
+		const adminOrgIds = adminOrgIdsResult.map((r) => r.organizationId);
+
+		if (adminOrgIds.length === 0) {
+			return 0;
+		}
 
 		// Get organizations where admin is admin/owner AND target user is a member
 		const sharedOrgs = await db
