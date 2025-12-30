@@ -23,7 +23,7 @@ export async function createOrganizationForUser(
 				id: crypto.randomUUID(),
 				name,
 				slug,
-				createdAt: new Date().toISOString(),
+				createdAt: sql`NOW()`,
 				metadata: '{}'
 			})
 			.returning({
@@ -40,7 +40,7 @@ export async function createOrganizationForUser(
 			organizationId: org.id,
 			userId,
 			role: 'owner',
-			createdAt: new Date().toISOString()
+			createdAt: sql`NOW()`
 		});
 
 		return org;
@@ -99,7 +99,7 @@ export async function addUserToOrganization(
 			organizationId,
 			userId,
 			role,
-			createdAt: new Date().toISOString()
+			createdAt: sql`NOW()`
 		});
 	} catch (error) {
 		console.error('Error adding user to organization:', error);

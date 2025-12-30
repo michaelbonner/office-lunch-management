@@ -8,7 +8,7 @@ import {
 import { user as userTable } from '../../../../../../drizzle/schema';
 import type { RequestHandler } from './$types';
 import { error, json } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 export const DELETE: RequestHandler = async ({ locals, params }) => {
 	const user = locals.user;
@@ -93,7 +93,7 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 			.update(userTable)
 			.set({
 				name: name.trim(),
-				updatedAt: new Date().toISOString()
+				updatedAt: sql`NOW()`
 			})
 			.where(eq(userTable.id, targetUserId));
 
