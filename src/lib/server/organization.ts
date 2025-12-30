@@ -1,5 +1,6 @@
+import { organization, member, user } from '../../../drizzle/schema';
 import { db } from './db';
-import { sql } from 'drizzle-orm';
+import { sql, eq, inArray, and, notExists } from 'drizzle-orm';
 
 /**
  * Create a new organization for a user
@@ -16,23 +17,31 @@ export async function createOrganizationForUser(
 		const name = `${userName}'s Organization`;
 
 		// Create organization
-		const newOrgs = await db.execute<{
-			id: string;
-			name: string;
-			slug: string;
-		}>(sql`
-			INSERT INTO organization (id, name, slug, "createdAt", metadata)
-			VALUES (gen_random_uuid(), ${name}, ${slug}, NOW(), '{}')
-			RETURNING id, name, slug
-		`);
+		const newOrgs = await db
+			.insert(organization)
+			.values({
+				id: crypto.randomUUID(),
+				name,
+				slug,
+				createdAt: new Date().toISOString(),
+				metadata: '{}'
+			})
+			.returning({
+				id: organization.id,
+				name: organization.name,
+				slug: organization.slug
+			});
 
 		const org = newOrgs[0];
 
 		// Add user as owner
-		await db.execute(sql`
-			INSERT INTO member (id, "organizationId", "userId", role, "createdAt")
-			VALUES (gen_random_uuid(), ${org.id}, ${userId}, 'owner', NOW())
-		`);
+		await db.insert(member).values({
+			id: crypto.randomUUID(),
+			organizationId: org.id,
+			userId,
+			role: 'owner',
+			createdAt: new Date().toISOString()
+		});
 
 		return org;
 	} catch (error) {
@@ -46,17 +55,16 @@ export async function createOrganizationForUser(
  */
 export async function getUserOrganizations(userId: string) {
 	try {
-		const orgs = await db.execute<{
-			id: string;
-			name: string;
-			slug: string;
-			role: string;
-		}>(sql`
-			SELECT o.id, o.name, o.slug, m.role
-			FROM organization o
-			JOIN member m ON m."organizationId" = o.id
-			WHERE m."userId" = ${userId}
-		`);
+		const orgs = await db
+			.select({
+				id: organization.id,
+				name: organization.name,
+				slug: organization.slug,
+				role: member.role
+			})
+			.from(organization)
+			.innerJoin(member, eq(member.organizationId, organization.id))
+			.where(eq(member.userId, userId));
 
 		return orgs;
 	} catch (error) {
@@ -75,24 +83,24 @@ export async function addUserToOrganization(
 ) {
 	try {
 		// Check if user is already a member
-		const existingMember = await db.execute<{
-			id: string;
-		}>(sql`
-			SELECT id
-			FROM member
-			WHERE "userId" = ${userId} AND "organizationId" = ${organizationId}
-			LIMIT 1
-		`);
+		const existingMember = await db
+			.select({ id: member.id })
+			.from(member)
+			.where(and(eq(member.userId, userId), eq(member.organizationId, organizationId)))
+			.limit(1);
 
 		if (existingMember.length > 0) {
 			return; // User already a member
 		}
 
 		// Add user as member
-		await db.execute(sql`
-			INSERT INTO member (id, "organizationId", "userId", role, "createdAt")
-			VALUES (gen_random_uuid(), ${organizationId}, ${userId}, ${role}, NOW())
-		`);
+		await db.insert(member).values({
+			id: crypto.randomUUID(),
+			organizationId,
+			userId,
+			role,
+			createdAt: new Date().toISOString()
+		});
 	} catch (error) {
 		console.error('Error adding user to organization:', error);
 		throw error;
@@ -104,24 +112,26 @@ export async function addUserToOrganization(
  */
 export async function getUsersInSameOrganizations(userId: string) {
 	try {
-		const users = await db.execute<{
-			id: string;
-			email: string;
-			name: string;
-			role: string | null;
-			memberRole: string | null;
-			createdAt: Date;
-		}>(sql`
-			SELECT DISTINCT u.id, u.email, u.name, u.role, u."createdAt", m1.role as "memberRole"
-			FROM "user" u
-			INNER JOIN member m1 ON m1."userId" = u.id
-			WHERE m1."organizationId" IN (
-				SELECT m2."organizationId"
-				FROM member m2
-				WHERE m2."userId" = ${userId}
-			)
-			ORDER BY u.name ASC
-		`);
+		// Get organization IDs for the user
+		const userOrgIds = db
+			.select({ organizationId: member.organizationId })
+			.from(member)
+			.where(eq(member.userId, userId));
+
+		// Get all users in those organizations
+		const users = await db
+			.selectDistinct({
+				id: user.id,
+				email: user.email,
+				name: user.name,
+				role: user.role,
+				memberRole: member.role,
+				createdAt: user.createdAt
+			})
+			.from(user)
+			.innerJoin(member, eq(member.userId, user.id))
+			.where(inArray(member.organizationId, userOrgIds))
+			.orderBy(user.name);
 
 		return users;
 	} catch (error) {
@@ -135,14 +145,11 @@ export async function getUsersInSameOrganizations(userId: string) {
  */
 export async function isUserAdmin(userId: string): Promise<boolean> {
 	try {
-		const adminMemberships = await db.execute<{
-			id: string;
-		}>(sql`
-			SELECT id
-			FROM member
-			WHERE "userId" = ${userId} AND role IN ('admin', 'owner')
-			LIMIT 1
-		`);
+		const adminMemberships = await db
+			.select({ id: member.id })
+			.from(member)
+			.where(and(eq(member.userId, userId), inArray(member.role, ['admin', 'owner'])))
+			.limit(1);
 
 		return adminMemberships.length > 0;
 	} catch (error) {
@@ -156,15 +163,14 @@ export async function isUserAdmin(userId: string): Promise<boolean> {
  */
 export async function isUserSystemAdmin(userId: string): Promise<boolean> {
 	try {
-		const users = await db.execute<{
-			id: string;
-			role: string | null;
-		}>(sql`
-			SELECT id, role
-			FROM "user"
-			WHERE id = ${userId}
-			LIMIT 1
-		`);
+		const users = await db
+			.select({
+				id: user.id,
+				role: user.role
+			})
+			.from(user)
+			.where(eq(user.id, userId))
+			.limit(1);
 
 		return users.length > 0 && users[0].role === 'admin';
 	} catch (error) {
@@ -181,19 +187,19 @@ export async function removeUserFromSharedOrganizations(
 	targetUserId: string
 ): Promise<number> {
 	try {
+		// Get organizations that the admin belongs to
+		const adminOrgIds = db
+			.select({ organizationId: member.organizationId })
+			.from(member)
+			.where(eq(member.userId, adminUserId));
+
 		// Get organizations that both the admin and target user belong to
-		const sharedOrgs = await db.execute<{
-			organizationId: string;
-		}>(sql`
-			SELECT DISTINCT m1."organizationId"
-			FROM member m1
-			WHERE m1."organizationId" IN (
-				SELECT m2."organizationId"
-				FROM member m2
-				WHERE m2."userId" = ${adminUserId}
-			)
-			AND m1."userId" = ${targetUserId}
-		`);
+		const sharedOrgs = await db
+			.selectDistinct({
+				organizationId: member.organizationId
+			})
+			.from(member)
+			.where(and(inArray(member.organizationId, adminOrgIds), eq(member.userId, targetUserId)));
 
 		if (sharedOrgs.length === 0) {
 			return 0;
@@ -202,12 +208,9 @@ export async function removeUserFromSharedOrganizations(
 		// Remove the user from all shared organizations
 		const orgIds = sharedOrgs.map((org) => org.organizationId);
 
-		for (const orgId of orgIds) {
-			await db.execute(sql`
-				DELETE FROM member
-				WHERE "userId" = ${targetUserId} AND "organizationId" = ${orgId}
-			`);
-		}
+		await db
+			.delete(member)
+			.where(and(eq(member.userId, targetUserId), inArray(member.organizationId, orgIds)));
 
 		return orgIds.length;
 	} catch (error) {
@@ -221,36 +224,24 @@ export async function removeUserFromSharedOrganizations(
  */
 export async function getAllOrganizationsWithMembers() {
 	try {
-		const result = await db.execute<{
-			organizationId: string;
-			organizationName: string;
-			organizationSlug: string;
-			organizationCreatedAt: Date;
-			memberId: string | null;
-			userId: string | null;
-			userName: string | null;
-			userEmail: string | null;
-			userRole: string | null;
-			memberRole: string | null;
-			memberCreatedAt: Date | null;
-		}>(sql`
-			SELECT
-				o.id as "organizationId",
-				o.name as "organizationName",
-				o.slug as "organizationSlug",
-				o."createdAt" as "organizationCreatedAt",
-				m.id as "memberId",
-				u.id as "userId",
-				u.name as "userName",
-				u.email as "userEmail",
-				u.role as "userRole",
-				m.role as "memberRole",
-				m."createdAt" as "memberCreatedAt"
-			FROM organization o
-			LEFT JOIN member m ON m."organizationId" = o.id
-			LEFT JOIN "user" u ON u.id = m."userId"
-			ORDER BY o.name ASC, u.name ASC
-		`);
+		const result = await db
+			.select({
+				organizationId: organization.id,
+				organizationName: organization.name,
+				organizationSlug: organization.slug,
+				organizationCreatedAt: organization.createdAt,
+				memberId: member.id,
+				userId: user.id,
+				userName: user.name,
+				userEmail: user.email,
+				userRole: user.role,
+				memberRole: member.role,
+				memberCreatedAt: member.createdAt
+			})
+			.from(organization)
+			.leftJoin(member, eq(member.organizationId, organization.id))
+			.leftJoin(user, eq(user.id, member.userId))
+			.orderBy(organization.name, user.name);
 
 		// Group by organization
 		const organizationsMap = new Map<
@@ -259,7 +250,7 @@ export async function getAllOrganizationsWithMembers() {
 				id: string;
 				name: string;
 				slug: string;
-				createdAt: Date;
+				createdAt: string;
 				members: Array<{
 					memberId: string;
 					userId: string;
@@ -267,7 +258,7 @@ export async function getAllOrganizationsWithMembers() {
 					userEmail: string;
 					userRole: string | null;
 					memberRole: string;
-					memberCreatedAt: Date;
+					memberCreatedAt: string;
 				}>;
 			}
 		>();
@@ -294,7 +285,7 @@ export async function getAllOrganizationsWithMembers() {
 					userEmail: row.userEmail || '',
 					userRole: row.userRole,
 					memberRole: row.memberRole || 'member',
-					memberCreatedAt: row.memberCreatedAt || new Date()
+					memberCreatedAt: row.memberCreatedAt || new Date().toISOString()
 				});
 			}
 		}
@@ -315,17 +306,19 @@ export async function updateUserRoleInSharedOrganizations(
 	newRole: 'admin' | 'member'
 ): Promise<number> {
 	try {
+		// Subquery for admin's organizations where they are admin/owner
+		const adminOrgIds = db
+			.select({ organizationId: member.organizationId })
+			.from(member)
+			.where(and(eq(member.userId, adminUserId), inArray(member.role, ['admin', 'owner'])));
+
 		// Get organizations where admin is admin/owner AND target user is a member
-		const sharedOrgs = await db.execute<{
-			organizationId: string;
-		}>(sql`
-			SELECT DISTINCT m1."organizationId"
-			FROM member m1
-			JOIN member m2 ON m2."organizationId" = m1."organizationId"
-			WHERE m1."userId" = ${targetUserId}
-			AND m2."userId" = ${adminUserId}
-			AND m2.role IN ('admin', 'owner')
-		`);
+		const sharedOrgs = await db
+			.selectDistinct({
+				organizationId: member.organizationId
+			})
+			.from(member)
+			.where(and(eq(member.userId, targetUserId), inArray(member.organizationId, adminOrgIds)));
 
 		if (sharedOrgs.length === 0) {
 			return 0;
@@ -333,32 +326,31 @@ export async function updateUserRoleInSharedOrganizations(
 
 		const orgIds = sharedOrgs.map((org) => org.organizationId);
 
-		// Update role in these organizations
-		// Don't update if the user is the owner (unless specific logic required, but usually owners are special)
-		// For now, let's assume we update any non-owner role, or allow updating admins.
-		// Safe bet: don't downgrade an owner.
+		// Get all target user's memberships in these orgs to check for owner role
+		const targetMemberships = await db
+			.select({
+				organizationId: member.organizationId,
+				role: member.role
+			})
+			.from(member)
+			.where(and(eq(member.userId, targetUserId), inArray(member.organizationId, orgIds)));
 
-		let updatedCount = 0;
+		// Filter out organizations where target is owner
+		const orgsToUpdate = targetMemberships
+			.filter((m) => m.role !== 'owner')
+			.map((m) => m.organizationId);
 
-		for (const orgId of orgIds) {
-			// Check if target is owner in this org
-			const targetMember = await db.execute<{ role: string }>(sql`
-                SELECT role FROM member WHERE "userId" = ${targetUserId} AND "organizationId" = ${orgId}
-            `);
-
-			if (targetMember.length > 0 && targetMember[0].role === 'owner') {
-				continue; // Skip updating owner
-			}
-
-			await db.execute(sql`
-				UPDATE member
-				SET role = ${newRole}
-				WHERE "userId" = ${targetUserId} AND "organizationId" = ${orgId}
-			`);
-			updatedCount++;
+		if (orgsToUpdate.length === 0) {
+			return 0;
 		}
 
-		return updatedCount;
+		// Update role in these organizations
+		await db
+			.update(member)
+			.set({ role: newRole })
+			.where(and(eq(member.userId, targetUserId), inArray(member.organizationId, orgsToUpdate)));
+
+		return orgsToUpdate.length;
 	} catch (error) {
 		console.error('Error updating user role in shared organizations:', error);
 		throw error;
@@ -370,22 +362,17 @@ export async function updateUserRoleInSharedOrganizations(
  */
 export async function getUsersWithoutOrganizations() {
 	try {
-		const users = await db.execute<{
-			id: string;
-			name: string;
-			email: string;
-			role: string | null;
-			createdAt: Date;
-		}>(sql`
-			SELECT u.id, u.name, u.email, u.role, u."createdAt"
-			FROM "user" u
-			WHERE NOT EXISTS (
-				SELECT 1
-				FROM member m
-				WHERE m."userId" = u.id
-			)
-			ORDER BY u.name ASC
-		`);
+		const users = await db
+			.select({
+				id: user.id,
+				name: user.name,
+				email: user.email,
+				role: user.role,
+				createdAt: user.createdAt
+			})
+			.from(user)
+			.where(notExists(db.select({ id: member.id }).from(member).where(eq(member.userId, user.id))))
+			.orderBy(user.name);
 
 		return users;
 	} catch (error) {

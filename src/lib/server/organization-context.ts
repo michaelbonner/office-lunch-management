@@ -1,6 +1,7 @@
+import { session, organization, member } from '../../../drizzle/schema';
 import { db } from './db';
 import { getUserOrganizations } from './organization';
-import { sql } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 
 /**
  * Get active organization ID from session or return user's first organization
@@ -11,12 +12,13 @@ export async function getActiveOrganizationId(
 ): Promise<string> {
 	// Try to get from session first
 	if (sessionId) {
-		const sessions = await db.execute<{ activeOrganizationId: string | null }>(sql`
-			SELECT "activeOrganizationId"
-			FROM session
-			WHERE id = ${sessionId}
-			LIMIT 1
-		`);
+		const sessions = await db
+			.select({
+				activeOrganizationId: session.activeOrganizationId
+			})
+			.from(session)
+			.where(eq(session.id, sessionId))
+			.limit(1);
 
 		if (sessions.length > 0 && sessions[0].activeOrganizationId) {
 			// Verify user still has access to this org
@@ -60,11 +62,10 @@ export async function setActiveOrganizationId(
 		throw new Error('User does not have access to this organization');
 	}
 
-	await db.execute(sql`
-		UPDATE session
-		SET "activeOrganizationId" = ${organizationId}
-		WHERE id = ${sessionId}
-	`);
+	await db
+		.update(session)
+		.set({ activeOrganizationId: organizationId })
+		.where(eq(session.id, sessionId));
 }
 
 /**
@@ -73,17 +74,16 @@ export async function setActiveOrganizationId(
 export async function getActiveOrganization(sessionId: string | undefined, userId: string) {
 	const orgId = await getActiveOrganizationId(sessionId, userId);
 
-	const orgs = await db.execute<{
-		id: string;
-		name: string;
-		slug: string;
-		role: string;
-	}>(sql`
-		SELECT o.id, o.name, o.slug, m.role
-		FROM organization o
-		JOIN member m ON m."organizationId" = o.id
-		WHERE o.id = ${orgId} AND m."userId" = ${userId}
-	`);
+	const orgs = await db
+		.select({
+			id: organization.id,
+			name: organization.name,
+			slug: organization.slug,
+			role: member.role
+		})
+		.from(organization)
+		.innerJoin(member, eq(member.organizationId, organization.id))
+		.where(and(eq(organization.id, orgId), eq(member.userId, userId)));
 
 	if (orgs.length === 0) {
 		throw new Error('Organization not found or user has no access');
