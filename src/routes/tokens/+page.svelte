@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Button from '$lib/components/ui/button/button.svelte';
 	import type { PageData } from './$types';
-	import { CheckCircle2, Copy, Key, Plus, Trash2 } from '@lucide/svelte';
+	import { CircleCheck, Copy, Key, Plus, Trash2 } from '@lucide/svelte';
 
 	let { data = $bindable() }: { data: PageData } = $props();
 
@@ -15,7 +15,6 @@
 	// JSON examples for API documentation
 	const optInRequest = '{"action": "in"}';
 	const optOutRequest = '{"action": "out"}';
-	const optInRequestWithDate = '{"action": "in", "date": "2024-01-15"}';
 
 	async function createToken() {
 		if (!tokenName.trim()) {
@@ -124,7 +123,7 @@
 			<div class="border-b border-green-200 bg-green-100/50 px-5 py-4">
 				<div class="flex items-center gap-3">
 					<div class="rounded-full bg-green-500 p-1.5">
-						<CheckCircle2 class="text-white" size={20} />
+						<CircleCheck class="text-white" size={20} />
 					</div>
 					<div>
 						<h3 class="text-lg font-semibold text-green-900">Token Created Successfully</h3>
@@ -160,7 +159,7 @@
 						>
 							{#snippet children()}
 								{#if copied}
-									<CheckCircle2 size={16} class="mr-1.5" />
+									<CircleCheck size={16} class="mr-1.5" />
 									Copied!
 								{:else}
 									<Copy size={16} class="mr-1.5" />
