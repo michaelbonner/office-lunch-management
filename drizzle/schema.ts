@@ -242,3 +242,30 @@ export const invitation = pgTable(
 		}).onDelete('cascade')
 	]
 );
+
+export const apiToken = pgTable(
+	'api_token',
+	{
+		id: text().primaryKey().notNull(),
+		userId: text('user_id').notNull(),
+		token: text().notNull(),
+		name: text().notNull(),
+		lastUsedAt: timestamp('last_used_at', { withTimezone: true, mode: 'string' }),
+		expiresAt: timestamp('expires_at', { withTimezone: true, mode: 'string' }),
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
+		updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull()
+	},
+	(table) => [
+		foreignKey({
+			columns: [table.userId],
+			foreignColumns: [user.id],
+			name: 'api_token_userId_fkey'
+		}).onDelete('cascade'),
+		unique('api_token_token_key').on(table.token),
+		index('api_token_userId_idx').using('btree', table.userId.asc().nullsLast().op('text_ops'))
+	]
+);
