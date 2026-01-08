@@ -1,7 +1,7 @@
 import { apiToken } from '../../../drizzle/schema';
 import { db } from './db';
 import { randomBytes, createHash } from 'crypto';
-import { eq, and, isNull, gt } from 'drizzle-orm';
+import { eq, and, isNull, gt, lt, or } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 
 /**
@@ -65,7 +65,7 @@ export async function validateToken(token: string): Promise<string | null> {
 			and(
 				eq(apiToken.token, hashedToken),
 				// Token must either have no expiration or be in the future
-				isNull(apiToken.expiresAt)
+				or(isNull(apiToken.expiresAt), gt(apiToken.expiresAt, new Date().toISOString()))
 			)
 		)
 		.limit(1);
@@ -143,7 +143,7 @@ export async function deleteAllUserTokens(userId: string): Promise<number> {
 export async function cleanupExpiredTokens(): Promise<number> {
 	const result = await db
 		.delete(apiToken)
-		.where(gt(apiToken.expiresAt, new Date().toISOString()))
+		.where(lt(apiToken.expiresAt, new Date().toISOString()))
 		.returning();
 
 	return result.length;
