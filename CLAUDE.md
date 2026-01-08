@@ -73,6 +73,7 @@ Located in `drizzle/schema.ts`. Core tables:
 - **restaurant** - Restaurants with `name` and `menuLink`
 - **order** - User orders with `userId`, `restaurantId`, `orderDetails` (unique constraint on user+restaurant)
 - **opt_in** - Date-specific opt-ins with `userId`, `organizationId`, `optInDate` (unique constraint on all three)
+- **api_token** - API tokens for programmatic access with `userId`, `token` (hashed), `name`, `lastUsedAt`, `expiresAt`
 - **session, account, verification, invitation** - Better Auth tables
 
 Database connection: `src/lib/server/db/index.ts` uses `drizzle-orm/postgres-js` with the full schema imported.
@@ -98,10 +99,34 @@ File: `src/lib/server/opt-in.ts`
 - Opt-ins are per-organization but typically created for all user's organizations at once
 - **Important**: Users must explicitly opt in to appear in the lunch ordering system
 
+### API Token System
+
+Files: `src/lib/server/api-token.ts`, `src/lib/server/api-auth.ts`
+
+- Allows users to generate API tokens for programmatic access
+- Token format: `olm_<random_string>` (olm = office lunch management)
+- Tokens are hashed using SHA-256 before storage
+- Key functions:
+  - `generateToken()` - Generate new token
+  - `hashToken()` - Hash token for storage
+  - `createApiToken()` - Create new token for user
+  - `validateToken()` - Validate and return user ID
+  - `getUserTokens()` - Get all tokens for user
+  - `deleteToken()` - Delete specific token
+  - `authenticateRequest()` - Authenticate API request via session or token
+- Token features:
+  - Optional expiration dates
+  - Last used tracking
+  - User-friendly names
+  - Secure one-time display
+- Authentication: Supports `Authorization: Bearer <token>` or `Authorization: <token>` headers
+- See `API_TOKENS.md` for complete API documentation
+
 ### Route Structure
 
 - `/` - Home/landing page
 - `/orders` - User order submission
+- `/tokens` - API token management
 - `/opt-in/success` - Opt-in confirmation page
 - `/admin/*` - Admin routes (protected by `isUserAdmin()` check):
   - `/admin` - Restaurant management
@@ -115,7 +140,9 @@ All in `src/routes/api/`:
 
 - `/api/orders` - Create/manage orders
 - `/api/restaurants` - Restaurant CRUD
-- `/api/opt-in` - Opt-in functionality
+- `/api/opt-in` - Opt-in functionality (redirects to success page)
+- `/api/tokens` - API token CRUD (requires authentication)
+- `/api/v1/opt-in` - RESTful opt-in API (supports session and token auth)
 - `/api/admin/*` - Admin-only endpoints for users, orders, organizations, opt-ins
 
 ### Testing Setup

@@ -14,6 +14,7 @@
 		<div class="space-y-3">
 			<div>
 				<Button variant="link" href="/orders" size="lg">My Lunch Order Preferences</Button>
+				<Button variant="link" href="/tokens" size="lg">API Tokens</Button>
 				{#if isAdmin}
 					<Button variant="link" href="/admin" size="lg">Admin Dashboard</Button>
 				{/if}
