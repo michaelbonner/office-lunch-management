@@ -82,7 +82,8 @@
 			"mysecretpassword",
 			"signup",
 			"Stylesheet",
-			"trivago"
+			"trivago",
+			"unhashed"
 		],
 		"ignoreWords": [
 			"blackthornsoftware"
