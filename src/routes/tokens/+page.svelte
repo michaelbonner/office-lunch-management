@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Button from '$lib/components/ui/button/button.svelte';
 	import type { PageData } from './$types';
-	import { Key, Trash2, Copy, Plus, AlertTriangle } from '@lucide/svelte';
+	import { CheckCircle2, Copy, Key, Plus, Trash2 } from '@lucide/svelte';
 
 	let { data = $bindable() }: { data: PageData } = $props();
 
@@ -83,7 +83,9 @@
 	async function refreshTokens() {
 		const response = await fetch('/api/tokens');
 		if (response.ok) {
-			data.tokens = await response.json();
+			const tokens = await response.json();
+			// Ensure reactivity by creating a new array reference
+			data.tokens = [...tokens];
 		}
 	}
 
@@ -116,53 +118,71 @@
 	</div>
 
 	{#if newlyCreatedToken}
-		<div class="mb-6 rounded-lg border border-yellow-500 bg-yellow-50 p-4 dark:bg-yellow-950">
-			<div class="mb-2 flex items-start gap-2">
-				<AlertTriangle class="mt-0.5 text-yellow-600 dark:text-yellow-400" size={20} />
-				<div class="flex-1">
-					<h3 class="font-semibold text-yellow-900 dark:text-yellow-100">
-						Token Created Successfully
-					</h3>
-					<p class="mt-1 text-sm text-yellow-800 dark:text-yellow-200">
-						Make sure to copy your token now. You won't be able to see it again!
-					</p>
+		<div
+			class="mb-6 overflow-hidden rounded-lg border border-green-200 bg-linear-to-br from-green-50 to-emerald-50 shadow-sm"
+		>
+			<div class="border-b border-green-200 bg-green-100/50 px-5 py-4">
+				<div class="flex items-center gap-3">
+					<div class="rounded-full bg-green-500 p-1.5">
+						<CheckCircle2 class="text-white" size={20} />
+					</div>
+					<div>
+						<h3 class="text-lg font-semibold text-green-900">Token Created Successfully</h3>
+						<p class="mt-0.5 text-sm text-green-700">
+							Copy your token now - this is the only time you'll see it!
+						</p>
+					</div>
 				</div>
 			</div>
-			<div class="mt-3 space-y-2">
+
+			<div class="space-y-4 p-5">
 				<div>
-					<div class="text-sm font-medium text-yellow-900 dark:text-yellow-100">Token Name</div>
-					<p class="text-sm text-yellow-800 dark:text-yellow-200">{newlyCreatedToken.name}</p>
+					<p class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-green-700">
+						Token Name
+					</p>
+					<p class="font-medium text-green-900">{newlyCreatedToken.name}</p>
 				</div>
+
 				<div>
-					<div class="text-sm font-medium text-yellow-900 dark:text-yellow-100">Token</div>
-					<div class="mt-1 flex gap-2">
-						<code
-							class="flex-1 break-all rounded bg-yellow-100 px-3 py-2 text-sm dark:bg-yellow-900"
-						>
-							{newlyCreatedToken.token}
-						</code>
+					<p class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-green-700">
+						Your API Token
+					</p>
+					<div class="flex gap-2">
+						<div class="flex-1 overflow-hidden rounded-lg border border-green-200 bg-white">
+							<code class="block break-all px-4 py-3 text-sm font-mono text-green-900">
+								{newlyCreatedToken.token}
+							</code>
+						</div>
 						<Button
-							variant="outline"
-							size="sm"
+							variant={copied ? 'default' : 'outline'}
+							class={copied ? 'bg-green-600 hover:bg-green-700' : ''}
 							onclick={() => copyToClipboard(newlyCreatedToken!.token)}
 						>
 							{#snippet children()}
 								{#if copied}
-									✓ Copied
+									<CheckCircle2 size={16} class="mr-1.5" />
+									Copied!
 								{:else}
-									<Copy size={16} />
+									<Copy size={16} class="mr-1.5" />
+									Copy
 								{/if}
 							{/snippet}
 						</Button>
 					</div>
 				</div>
-			</div>
-			<div class="mt-3">
-				<Button variant="secondary" size="sm" onclick={() => (newlyCreatedToken = null)}>
-					{#snippet children()}
-						Dismiss
-					{/snippet}
-				</Button>
+
+				<div class="flex justify-end pt-2">
+					<Button
+						variant="ghost"
+						size="sm"
+						class="text-green-700 hover:bg-green-100 hover:text-green-900"
+						onclick={() => (newlyCreatedToken = null)}
+					>
+						{#snippet children()}
+							Got it, dismiss
+						{/snippet}
+					</Button>
+				</div>
 			</div>
 		</div>
 	{/if}
@@ -303,9 +323,7 @@
 					<!-- Check Opt-In Status -->
 					<div class="rounded-lg border p-4">
 						<div class="mb-2 flex items-center gap-2">
-							<span
-								class="rounded bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-800 dark:bg-blue-900 dark:text-blue-100"
-							>
+							<span class="rounded bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-800">
 								GET
 							</span>
 							<code class="text-sm font-medium">/api/v1/opt-in</code>
@@ -340,9 +358,7 @@
 					<!-- Opt In -->
 					<div class="rounded-lg border p-4">
 						<div class="mb-2 flex items-center gap-2">
-							<span
-								class="rounded bg-green-100 px-2 py-1 text-xs font-semibold text-green-800 dark:bg-green-900 dark:text-green-100"
-							>
+							<span class="rounded bg-green-100 px-2 py-1 text-xs font-semibold text-green-800">
 								POST
 							</span>
 							<code class="text-sm font-medium">/api/v1/opt-in</code>
