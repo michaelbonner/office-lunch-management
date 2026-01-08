@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { invalidate } from '$app/navigation';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import type { PageData } from './$types';
 	import { CircleCheck, Copy, Key, Plus, Trash2 } from '@lucide/svelte';
@@ -80,12 +81,8 @@
 	}
 
 	async function refreshTokens() {
-		const response = await fetch('/api/tokens');
-		if (response.ok) {
-			const tokens = await response.json();
-			// Ensure reactivity by creating a new array reference
-			data.tokens = [...tokens];
-		}
+		// Invalidate the page data to re-run the load function
+		await invalidate('/tokens');
 	}
 
 	function copyToClipboard(text: string) {
