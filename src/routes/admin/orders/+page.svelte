@@ -301,7 +301,7 @@
 	});
 </script>
 
-<div class="container mx-auto max-w-4xl px-4 py-8">
+<div class="container mx-auto max-w-5xl px-4 py-8">
 	<div class="mb-8">
 		<h1 class="mb-2 text-3xl font-bold">Order Management</h1>
 		<p class="text-muted-foreground">Track orders as you enter them on restaurant sites</p>
