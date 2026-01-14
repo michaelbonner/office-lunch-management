@@ -17,11 +17,13 @@
 	<main class="relative mx-auto max-w-6xl px-6 py-16 lg:py-24">
 		<section class="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
 			<div class="space-y-6">
-				<p class="eyebrow">Office Lunch Management</p>
-				<h1 class="hero-title">
+				<p class="text-sm uppercase tracking-wider font-medium text-yellow-900/80">
+					Office Lunch Management
+				</p>
+				<h1 class="text-5xl lg:text-7xl font-extrabold! leading-tighter! tracking-tight">
 					Make lunch coordination feel effortless, even across multiple teams.
 				</h1>
-				<p class="hero-copy">
+				<p class="text-lg text-gray-600">
 					Collect opt-ins, organize orders, and keep every organization in sync. Built for busy
 					admins who want fewer follow-ups and a smoother Friday lunch.
 				</p>
@@ -141,28 +143,6 @@
 <style>
 	.landing {
 		background: radial-gradient(circle at top left, #fef1d1 0%, #faf7f2 45%, #f3f7f8 100%);
-	}
-
-	.hero-title {
-		font-size: clamp(2.4rem, 3vw + 1.8rem, 4.4rem);
-		line-height: 1.05;
-		letter-spacing: -0.02em;
-		font-weight: 650;
-	}
-
-	.hero-copy {
-		max-width: 38rem;
-		font-size: 1.1rem;
-		line-height: 1.7;
-		color: #2f3438;
-	}
-
-	.eyebrow {
-		font-size: 0.85rem;
-		letter-spacing: 0.22em;
-		text-transform: uppercase;
-		color: #5f5a4e;
-		font-weight: 600;
 	}
 
 	.surface {
@@ -336,10 +316,6 @@
 	@media (max-width: 640px) {
 		.surface {
 			padding: 1.8rem;
-		}
-
-		.hero-copy {
-			font-size: 1rem;
 		}
 	}
 
