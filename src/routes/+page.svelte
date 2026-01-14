@@ -140,7 +140,6 @@
 
 <style>
 	.landing {
-		font-family: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
 		background: radial-gradient(circle at top left, #fef1d1 0%, #faf7f2 45%, #f3f7f8 100%);
 	}
 
