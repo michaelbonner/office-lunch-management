@@ -145,16 +145,6 @@
 		background: radial-gradient(circle at top left, #fef1d1 0%, #faf7f2 45%, #f3f7f8 100%);
 	}
 
-	.surface {
-		border-radius: 32px;
-		background: rgba(255, 255, 255, 0.78);
-		box-shadow:
-			0 20px 60px rgba(33, 33, 33, 0.08),
-			0 1px 0 rgba(255, 255, 255, 0.9) inset;
-		padding: 2.5rem;
-		backdrop-filter: blur(8px);
-	}
-
 	.card {
 		border: 1px solid rgba(55, 62, 65, 0.08);
 	}
@@ -310,12 +300,6 @@
 		50% {
 			transform: scale(1.1);
 			opacity: 0.7;
-		}
-	}
-
-	@media (max-width: 640px) {
-		.surface {
-			padding: 1.8rem;
 		}
 	}
 
