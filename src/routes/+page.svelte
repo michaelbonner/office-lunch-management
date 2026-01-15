@@ -189,10 +189,4 @@
 			opacity: 0.7;
 		}
 	}
-
-	@media (prefers-reduced-motion: reduce) {
-		* {
-			animation: none !important;
-		}
-	}
 </style>

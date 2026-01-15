@@ -80,7 +80,7 @@
 											<div class="flex items-center gap-3">
 												{#if member.userRole === 'admin'}
 													<span
-														class="rounded-full bg-red-100 px-2.5 py-1 text-xs font-medium text-red-700 dark:bg-red-900/30 dark:text-red-400"
+														class="rounded-full bg-red-100 px-2.5 py-1 text-xs font-medium text-red-700"
 													>
 														System Admin
 													</span>
@@ -88,10 +88,10 @@
 												<span
 													class="rounded-full px-2.5 py-1 text-xs font-medium {member.memberRole ===
 													'owner'
-														? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+														? 'bg-purple-100 text-purple-700'
 														: member.memberRole === 'admin'
-															? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-															: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'}"
+															? 'bg-blue-100 text-blue-700'
+															: 'bg-gray-100 text-gray-700'}"
 												>
 													{member.memberRole}
 												</span>
@@ -146,7 +146,7 @@
 								<div class="flex items-center gap-3">
 									{#if user.role === 'admin'}
 										<span
-											class="rounded-full bg-red-100 px-2.5 py-1 text-xs font-medium text-red-700 dark:bg-red-900/30 dark:text-red-400"
+											class="rounded-full bg-red-100 px-2.5 py-1 text-xs font-medium text-red-700"
 										>
 											System Admin
 										</span>

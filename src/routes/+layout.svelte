@@ -14,7 +14,11 @@
 
 <Toaster />
 
-{@render children?.()}
+<main
+	class="min-h-screen [background:radial-gradient(circle_at_top_left,#fef1d1_0%,#faf7f2_45%,#f3f7f8_100%)]"
+>
+	{@render children?.()}
+</main>
 
 <style>
 	:global(body) {

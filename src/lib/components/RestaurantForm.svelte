@@ -108,7 +108,7 @@
 	{/if}
 
 	{#if success}
-		<div class="rounded-md bg-green-500/10 p-3 text-sm text-green-600 dark:text-green-400">
+		<div class="rounded-md bg-green-500/10 p-3 text-sm text-green-600">
 			Restaurant created successfully!
 		</div>
 	{/if}
