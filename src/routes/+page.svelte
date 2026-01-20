@@ -7,6 +7,10 @@
 
 	let { data }: { data: PageData } = $props();
 
+	let isOptingIn = $state(false);
+	let optInError = $state<string | null>(null);
+	let isOptedIn = $state.raw(data?.optInStatus?.optedIn ?? false);
+
 	function formatLongDate(dateString: string): string {
 		// Parse the date string (YYYY-MM-DD) and create a date in local timezone
 		const [year, month, day] = dateString.split('-').map(Number);
@@ -16,6 +20,33 @@
 			month: 'long',
 			day: 'numeric'
 		});
+	}
+
+	async function handleOptIn() {
+		isOptingIn = true;
+		optInError = null;
+
+		try {
+			const response = await fetch('/api/v1/opt-in', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ action: 'in' })
+			});
+
+			if (!response.ok) {
+				throw new Error('Failed to opt in');
+			}
+
+			const result = await response.json();
+			isOptedIn = result.optedIn;
+		} catch (error) {
+			console.error('Error opting in:', error);
+			optInError = 'Failed to opt in. Please try again.';
+		} finally {
+			isOptingIn = false;
+		}
 	}
 </script>
 
@@ -73,7 +104,7 @@
 						{#if data?.optInStatus}
 							<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
 								<div class="flex items-start gap-3">
-									{#if data.optInStatus.optedIn}
+									{#if isOptedIn}
 										<span class="text-2xl">✓</span>
 										<div class="flex-1">
 											<p class="font-medium text-green-800">You're opted in for today</p>
@@ -84,12 +115,16 @@
 										<div class="flex-1">
 											<p class="font-medium text-gray-700">You're not opted in for today</p>
 											<p class="text-sm text-gray-600">Date: {formatLongDate(data.todayDate)}</p>
-											<a
-												href="/api/opt-in?action=in"
-												class="mt-3 inline-block rounded-lg bg-yellow-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-yellow-700"
+											{#if optInError}
+												<p class="mt-2 text-sm text-red-600">{optInError}</p>
+											{/if}
+											<button
+												onclick={handleOptIn}
+												disabled={isOptingIn}
+												class="mt-3 inline-block rounded-lg bg-yellow-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-yellow-700 disabled:cursor-not-allowed disabled:opacity-50"
 											>
-												Opt In for Today
-											</a>
+												{isOptingIn ? 'Opting In...' : 'Opt In for Today'}
+											</button>
 										</div>
 									{/if}
 								</div>
