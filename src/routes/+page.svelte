@@ -70,18 +70,24 @@
 						<h2 class="mb-1.5 text-[1.6rem] font-semibold">Welcome back</h2>
 						{#if data?.optInStatus}
 							<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-								<div class="flex items-center gap-2">
+								<div class="flex items-start gap-3">
 									{#if data.optInStatus.optedIn}
 										<span class="text-2xl">✓</span>
-										<div>
+										<div class="flex-1">
 											<p class="font-medium text-green-800">You're opted in for today</p>
 											<p class="text-sm text-gray-600">Date: {formatLongDate(data.todayDate)}</p>
 										</div>
 									{:else}
 										<span class="text-2xl">⊘</span>
-										<div>
+										<div class="flex-1">
 											<p class="font-medium text-gray-700">You're not opted in for today</p>
 											<p class="text-sm text-gray-600">Date: {formatLongDate(data.todayDate)}</p>
+											<a
+												href="/api/opt-in?action=in"
+												class="mt-3 inline-block rounded-lg bg-yellow-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-yellow-700"
+											>
+												Opt In for Today
+											</a>
 										</div>
 									{/if}
 								</div>
