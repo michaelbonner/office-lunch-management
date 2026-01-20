@@ -8,7 +8,9 @@
 	let { data }: { data: PageData } = $props();
 
 	function formatLongDate(dateString: string): string {
-		return new Date(dateString).toLocaleDateString('en-US', {
+		// Parse the date string (YYYY-MM-DD) and create a date in local timezone
+		const [year, month, day] = dateString.split('-').map(Number);
+		return new Date(year, month - 1, day).toLocaleDateString('en-US', {
 			weekday: 'long',
 			year: 'numeric',
 			month: 'long',
