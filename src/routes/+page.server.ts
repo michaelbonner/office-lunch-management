@@ -14,6 +14,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	return {
 		isAdmin,
-		isSystemAdmin
+		isSystemAdmin,
+		isLoggedIn: !!user
 	};
 };

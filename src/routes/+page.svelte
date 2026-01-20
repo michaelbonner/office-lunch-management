@@ -60,16 +60,18 @@
 						<LogIn isAdmin={data?.isAdmin} isSystemAdmin={data?.isSystemAdmin} />
 					</div>
 				</div>
-				<div class="mt-8 grid gap-4 sm:grid-cols-2">
-					<MiniCard
-						label="Smart opt-ins"
-						description="Users must opt in by date to appear in lunch ordering."
-					/>
-					<MiniCard
-						label="Admin visibility"
-						description="See orders across restaurants and export in seconds."
-					/>
-				</div>
+				{#if !data?.isLoggedIn}
+					<div class="mt-8 grid gap-4 sm:grid-cols-2">
+						<MiniCard
+							label="Smart opt-ins"
+							description="Users must opt in by date to appear in lunch ordering."
+						/>
+						<MiniCard
+							label="Admin visibility"
+							description="See orders across restaurants and export in seconds."
+						/>
+					</div>
+				{/if}
 			</div>
 		</section>
 
