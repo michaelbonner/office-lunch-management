@@ -257,7 +257,7 @@
 		</div>
 
 		{#if showAddOrderForm}
-			<div class="mb-6 rounded-lg border bg-card p-6">
+			<div class="mb-6 rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm p-6">
 				<h3 class="mb-4 text-lg font-semibold">Add New Order for {selectedUser.name}</h3>
 				<div class="space-y-4">
 					<div>
@@ -319,7 +319,7 @@
 		{/if}
 
 		{#if orders.length > 0}
-			<div class="rounded-lg border bg-card">
+			<div class="rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm">
 				<div class="border-b p-4">
 					<h2 class="text-xl font-semibold">{selectedUser.name}'s Orders</h2>
 					<p class="text-sm text-muted-foreground">{orders.length} order(s)</p>
@@ -405,7 +405,9 @@
 				</div>
 			</div>
 		{:else if !loading}
-			<div class="rounded-lg border bg-card p-8 text-center text-muted-foreground">
+			<div
+				class="rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm p-8 text-center text-muted-foreground"
+			>
 				{selectedUser.name} has no orders yet
 			</div>
 		{/if}

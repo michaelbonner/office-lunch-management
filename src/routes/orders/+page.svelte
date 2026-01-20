@@ -32,7 +32,9 @@
 	</div>
 
 	{#if data.restaurants.length === 0}
-		<div class="rounded-lg border bg-card p-8 text-center">
+		<div
+			class="rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm p-8 text-center"
+		>
 			<p class="mb-4 text-muted-foreground">No restaurants available yet.</p>
 			<p class="text-sm text-muted-foreground">
 				Ask an admin to add some restaurants to get started!
@@ -42,21 +44,10 @@
 		<div class="space-y-4 lg:grid lg:grid-cols-3 lg:gap-4">
 			{#each data.restaurants as restaurant}
 				<div class="space-y-2">
-					<div class="flex items-center justify-start gap-3">
-						<h3 class="font-medium">{restaurant.name}</h3>
-						<a
-							href={restaurant.menuLink}
-							target="_blank"
-							rel="noopener noreferrer"
-							class="text-sm text-primary hover:underline flex items-center gap-1"
-						>
-							<Utensils size={16} />
-							<span> View Menu </span>
-						</a>
-					</div>
 					<OrderForm
 						restaurantId={restaurant.id}
 						restaurantName={restaurant.name}
+						restaurantMenuLink={restaurant.menuLink}
 						existingOrder={data.orders.get(restaurant.id) || ''}
 						onSuccess={refreshOrders}
 					/>

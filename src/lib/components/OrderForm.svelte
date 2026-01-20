@@ -1,14 +1,22 @@
 <script lang="ts">
 	import Button from '$lib/components/ui/button/button.svelte';
+	import { Utensils } from '@lucide/svelte';
 
 	interface Props {
 		restaurantId: string;
 		restaurantName: string;
+		restaurantMenuLink: string;
 		existingOrder?: string;
 		onSuccess?: () => void;
 	}
 
-	let { restaurantId, restaurantName, existingOrder = '', onSuccess }: Props = $props();
+	let {
+		restaurantId,
+		restaurantName,
+		restaurantMenuLink,
+		existingOrder = '',
+		onSuccess
+	}: Props = $props();
 
 	let orderDetails = $state('');
 	let loading = $state(false);
@@ -88,8 +96,20 @@
 	}
 </script>
 
-<div class="rounded-lg border bg-card p-4">
-	<h3 class="mb-3 font-medium">{restaurantName}</h3>
+<div class="rounded-lg bg-white/70 backdrop-blur-sm p-4 border-2 border-yellow-900/20">
+	<div class="flex items-center justify-between gap-3 mb-6">
+		<h3 class="font-medium">{restaurantName}</h3>
+		<Button
+			href={restaurantMenuLink}
+			target="_blank"
+			rel="noopener noreferrer"
+			variant="outline"
+			size="sm"
+		>
+			<Utensils size={16} />
+			<span> View Menu </span>
+		</Button>
+	</div>
 
 	<form onsubmit={handleSubmit} class="space-y-3">
 		<div>
@@ -102,7 +122,7 @@
 				required
 				disabled={loading}
 				rows="3"
-				class="w-full resize-none rounded-md border bg-background px-3 py-2 focus:ring-2 focus:ring-ring focus:outline-none disabled:opacity-50"
+				class="w-full resize-none rounded-md bg-background px-3 py-2 focus:ring-2 focus:ring-ring focus:outline-none disabled:opacity-50 border-gray-400/50 min-h-[140px]"
 				placeholder="Enter your lunch order..."
 			></textarea>
 		</div>

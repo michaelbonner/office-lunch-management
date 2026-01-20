@@ -8,7 +8,9 @@
 </script>
 
 <div class="container mx-auto max-w-2xl px-4 py-16">
-	<div class="rounded-lg border bg-card p-8 text-center">
+	<div
+		class="rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm p-8 text-center"
+	>
 		<div class="mb-4 flex justify-center">
 			<div class="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
 				<Check class="h-8 w-8 text-primary" />

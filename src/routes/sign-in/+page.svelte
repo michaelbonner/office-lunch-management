@@ -29,7 +29,7 @@
 </script>
 
 <div class="container mx-auto max-w-md px-4 py-16">
-	<div class="rounded-lg border bg-card p-8">
+	<div class="rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm p-8">
 		<h1 class="mb-2 text-2xl font-bold">Sign In</h1>
 		<p class="mb-6 text-muted-foreground">Sign in to continue to Office Lunch Management</p>
 

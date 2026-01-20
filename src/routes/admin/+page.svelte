@@ -282,7 +282,9 @@
 							Add a new place for your team to order from.
 						</p>
 					</div>
-					<div class="rounded-lg border bg-card p-6 shadow-sm">
+					<div
+						class="rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm p-6 shadow-sm"
+					>
 						<RestaurantForm
 							onSuccess={refreshRestaurants}
 							organizations={data.userOrganizations || []}
@@ -322,7 +324,7 @@
 					{:else}
 						{#each filteredRestaurants as restaurant (restaurant.id)}
 							<div
-								class="group relative rounded-lg border bg-card p-4 transition-all hover:shadow-md"
+								class="group relative rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm p-4 transition-all hover:shadow-md"
 							>
 								{#if editingRestaurantId === restaurant.id}
 									<!-- Edit Mode -->
@@ -435,7 +437,9 @@
 						<h2 class="text-lg font-semibold">Add New User</h2>
 						<p class="text-sm text-muted-foreground">Invite a new member to your organization.</p>
 					</div>
-					<div class="rounded-lg border bg-card p-6 shadow-sm">
+					<div
+						class="rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm p-6 shadow-sm"
+					>
 						<UserForm onSuccess={loadUsers} />
 					</div>
 				</div>
@@ -483,7 +487,7 @@
 
 						{#each filteredUsers as user (user.id)}
 							<div
-								class="group relative rounded-lg border bg-card p-4 transition-all hover:shadow-md"
+								class="group relative rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm p-4 transition-all hover:shadow-md"
 							>
 								{#if editingUserId === user.id}
 									<!-- Edit mode -->

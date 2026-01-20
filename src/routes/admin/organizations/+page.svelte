@@ -37,13 +37,17 @@
 	</div>
 
 	{#if organizations.length === 0}
-		<div class="rounded-lg border bg-card p-12 text-center">
+		<div
+			class="rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm p-12 text-center"
+		>
 			<p class="text-lg text-muted-foreground">No organizations found</p>
 		</div>
 	{:else}
 		<div class="space-y-4">
 			{#each organizations as org (org.id)}
-				<div class="overflow-hidden rounded-lg border bg-card">
+				<div
+					class="overflow-hidden rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm"
+				>
 					<!-- Organization Header -->
 					<button
 						onclick={() => toggleOrganization(org.id)}
@@ -107,7 +111,9 @@
 		</div>
 
 		<!-- Users without Organizations Section -->
-		<div class="mt-8 overflow-hidden rounded-lg border bg-card">
+		<div
+			class="mt-8 overflow-hidden rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm"
+		>
 			<!-- Section Header -->
 			<button
 				onclick={toggleUsersWithoutOrg}

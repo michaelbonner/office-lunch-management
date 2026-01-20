@@ -335,7 +335,7 @@
 
 	<!-- Users WITHOUT Orders -->
 	{#if selectedRestaurant && usersWithoutOrders.length > 0}
-		<div class="mb-8 rounded-lg border bg-card">
+		<div class="mb-8 rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm">
 			<div class="border-b bg-muted/50 p-4">
 				<h3 class="text-lg font-semibold">
 					Opted In - Without Orders ({usersWithoutOrders.length})
@@ -391,7 +391,7 @@
 
 	<!-- Users WITH Orders -->
 	{#if selectedRestaurant && usersWithOrders.length > 0}
-		<div class="rounded-lg border bg-card">
+		<div class="rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm">
 			<div class="flex items-center justify-between border-b p-4">
 				<div>
 					<h2 class="text-xl font-semibold">{selectedRestaurant.name}</h2>
@@ -485,7 +485,7 @@
 
 	<!-- Not Opted In Section -->
 	{#if notOptedInUsersList.length > 0}
-		<div class="mt-8 rounded-lg border bg-card">
+		<div class="mt-8 rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm">
 			<div class="border-b bg-muted/50 p-4">
 				<h3 class="font-semibold text-muted-foreground">
 					Not Opted In Today ({notOptedInUsersList.length})

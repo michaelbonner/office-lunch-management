@@ -192,7 +192,7 @@
 				{/snippet}
 			</Button>
 		{:else}
-			<div class="rounded-lg border bg-card p-4">
+			<div class="rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm p-4">
 				<h3 class="mb-4 font-semibold">Create New Token</h3>
 				<div class="space-y-4">
 					<div>
@@ -254,7 +254,9 @@
 	<div>
 		<h2 class="mb-4 text-xl font-semibold">Your Tokens</h2>
 		{#if data.tokens.length === 0}
-			<div class="rounded-lg border bg-card p-8 text-center">
+			<div
+				class="rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm p-8 text-center"
+			>
 				<Key class="mx-auto mb-3 text-muted-foreground" size={48} />
 				<p class="mb-2 font-medium">No tokens yet</p>
 				<p class="text-sm text-muted-foreground">
@@ -264,7 +266,9 @@
 		{:else}
 			<div class="space-y-3">
 				{#each data.tokens as token}
-					<div class="flex items-center justify-between rounded-lg border bg-card p-4">
+					<div
+						class="flex items-center justify-between rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm p-4"
+					>
 						<div class="flex-1">
 							<div class="mb-1 flex items-center gap-2">
 								<h3 class="font-medium">{token.name}</h3>
@@ -301,7 +305,9 @@
 
 	<div class="mt-12">
 		<h2 class="mb-4 text-xl font-semibold">API Documentation</h2>
-		<div class="space-y-6 rounded-lg border bg-card p-6">
+		<div
+			class="space-y-6 rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm p-6"
+		>
 			<div>
 				<h3 class="mb-2 text-lg font-medium">Authentication</h3>
 				<p class="mb-2 text-sm text-muted-foreground">
@@ -317,7 +323,7 @@
 
 				<div class="space-y-6">
 					<!-- Check Opt-In Status -->
-					<div class="rounded-lg border p-4">
+					<div class="rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm p-4">
 						<div class="mb-2 flex items-center gap-2">
 							<span class="rounded bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-800">
 								GET
@@ -352,7 +358,7 @@
 					</div>
 
 					<!-- Opt In -->
-					<div class="rounded-lg border p-4">
+					<div class="rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm p-4">
 						<div class="mb-2 flex items-center gap-2">
 							<span class="rounded bg-green-100 px-2 py-1 text-xs font-semibold text-green-800">
 								POST
