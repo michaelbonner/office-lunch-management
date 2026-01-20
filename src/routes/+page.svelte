@@ -52,10 +52,14 @@
 
 			<div class="surface border border-gray-950/8">
 				<div class="space-y-4">
-					<h2 class="mb-1.5 text-[1.6rem] font-semibold">Start coordinating today</h2>
-					<p class="leading-relaxed text-[#3f4447]">
-						Sign in to manage your lunch preferences, view token access, or jump into admin tools.
-					</p>
+					{#if !data?.isLoggedIn}
+						<h2 class="mb-1.5 text-[1.6rem] font-semibold">Start coordinating today</h2>
+						<p class="leading-relaxed text-[#3f4447]">
+							Sign in to manage your lunch preferences, view token access, or jump into admin tools.
+						</p>
+					{:else}
+						<h2 class="mb-1.5 text-[1.6rem] font-semibold">Welcome back</h2>
+					{/if}
 					<div class="[&_button]:w-full [&_button]:justify-center">
 						<LogIn isAdmin={data?.isAdmin} isSystemAdmin={data?.isSystemAdmin} />
 					</div>
