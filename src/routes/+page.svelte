@@ -6,6 +6,15 @@
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
+
+	function formatLongDate(dateString: string): string {
+		return new Date(dateString).toLocaleDateString('en-US', {
+			weekday: 'long',
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric'
+		});
+	}
 </script>
 
 <svelte:head>
@@ -59,6 +68,25 @@
 						</p>
 					{:else}
 						<h2 class="mb-1.5 text-[1.6rem] font-semibold">Welcome back</h2>
+						{#if data?.optInStatus}
+							<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+								<div class="flex items-center gap-2">
+									{#if data.optInStatus.optedIn}
+										<span class="text-2xl">✓</span>
+										<div>
+											<p class="font-medium text-green-800">You're opted in for today</p>
+											<p class="text-sm text-gray-600">Date: {formatLongDate(data.todayDate)}</p>
+										</div>
+									{:else}
+										<span class="text-2xl">⊘</span>
+										<div>
+											<p class="font-medium text-gray-700">You're not opted in for today</p>
+											<p class="text-sm text-gray-600">Date: {formatLongDate(data.todayDate)}</p>
+										</div>
+									{/if}
+								</div>
+							</div>
+						{/if}
 					{/if}
 					<div class="[&_button]:w-full [&_button]:justify-center">
 						<LogIn isAdmin={data?.isAdmin} isSystemAdmin={data?.isSystemAdmin} />
