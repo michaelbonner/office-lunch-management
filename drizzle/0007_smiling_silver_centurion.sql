@@ -1,0 +1,1 @@
+ALTER TABLE "organization" ADD COLUMN "work_email_domain" text;

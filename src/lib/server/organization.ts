@@ -395,3 +395,93 @@ export async function getUsersWithoutOrganizations() {
 		throw error;
 	}
 }
+
+/**
+ * Find organizations that have a matching work email domain
+ */
+export async function getOrganizationsByWorkEmailDomain(emailDomain: string) {
+	try {
+		const orgs = await db
+			.select({
+				id: organization.id,
+				name: organization.name,
+				slug: organization.slug
+			})
+			.from(organization)
+			.where(eq(organization.workEmailDomain, emailDomain.toLowerCase()));
+
+		return orgs;
+	} catch (error) {
+		console.error('Error finding organizations by work email domain:', error);
+		throw error;
+	}
+}
+
+/**
+ * Update the work email domain for an organization
+ */
+export async function updateOrganizationWorkEmailDomain(
+	organizationId: string,
+	workEmailDomain: string | null
+) {
+	try {
+		await db
+			.update(organization)
+			.set({
+				workEmailDomain: workEmailDomain ? workEmailDomain.toLowerCase() : null
+			})
+			.where(eq(organization.id, organizationId));
+	} catch (error) {
+		console.error('Error updating organization work email domain:', error);
+		throw error;
+	}
+}
+
+/**
+ * Get an organization by ID with its work email domain
+ */
+export async function getOrganizationById(organizationId: string) {
+	try {
+		const orgs = await db
+			.select({
+				id: organization.id,
+				name: organization.name,
+				slug: organization.slug,
+				logo: organization.logo,
+				workEmailDomain: organization.workEmailDomain,
+				createdAt: organization.createdAt
+			})
+			.from(organization)
+			.where(eq(organization.id, organizationId))
+			.limit(1);
+
+		return orgs[0] || null;
+	} catch (error) {
+		console.error('Error getting organization by ID:', error);
+		throw error;
+	}
+}
+
+/**
+ * Check if a user is an admin/owner of a specific organization
+ */
+export async function isUserOrgAdmin(userId: string, organizationId: string): Promise<boolean> {
+	try {
+		const adminMemberships = await db
+			.select({ id: member.id })
+			.from(member)
+			.where(
+				and(
+					eq(member.userId, userId),
+					eq(member.organizationId, organizationId),
+					inArray(member.role, ['admin', 'owner'])
+				)
+			)
+			.limit(1);
+
+		return adminMemberships.length > 0;
+	} catch (error) {
+		console.error('Error checking if user is org admin:', error);
+		throw error;
+	}
+}
