@@ -50,13 +50,18 @@ export const auth = betterAuth({
 			}
 		}),
 		after: createAuthMiddleware(async (ctx) => {
-			// Only create organizations for new sign-ups, not on every auth operation
-			// This prevents the hook from running on login, session refresh, etc.
-			if (!ctx.path || (!ctx.path.includes('/sign-up') && !ctx.path.includes('/callback'))) {
+			// Run organization logic for sign-up, callback, and sign-in
+			// This allows both new user org creation and auto-join for existing users
+			if (
+				!ctx.path ||
+				(!ctx.path.includes('/sign-up') &&
+					!ctx.path.includes('/callback') &&
+					!ctx.path.includes('/sign-in'))
+			) {
 				return;
 			}
 
-			// Create organization for new users
+			// Process user data from auth response
 			if (ctx.body && typeof ctx.body === 'object' && 'user' in ctx.body) {
 				const user = ctx.body.user as { id: string; email: string; name: string };
 				if (user?.id && user?.email) {
@@ -64,24 +69,25 @@ export const auth = betterAuth({
 						// Check if user already has an organization
 						const existingOrgs = await getUserOrganizations(user.id);
 
+						// Only create new organization for users without any organizations (new users)
 						if (existingOrgs.length === 0) {
-							// Create new organization for this user
 							await createOrganizationForUser(user.id, user.email, user.name || 'User');
 						}
 
 						// Auto-join organizations that have a matching work email domain
+						// This runs for both new and existing users on every sign-in
 						const emailParts = user.email.split('@');
 						const emailDomain = emailParts.length === 2 ? emailParts[1] : null;
 						if (emailDomain) {
 							const matchingOrgs = await getOrganizationsByWorkEmailDomain(emailDomain);
 							for (const org of matchingOrgs) {
-								// onConflictDoNothing in addUserToOrganization prevents race conditions
+								// onConflictDoNothing in addUserToOrganization prevents duplicates
 								await addUserToOrganization(user.id, org.id, 'member');
 							}
 						}
 					} catch (error) {
-						console.error('Failed to create organization for user:', error);
-						// Don't fail the auth flow if organization creation fails
+						console.error('Failed to process organization logic for user:', error);
+						// Don't fail the auth flow if organization operations fail
 					}
 				}
 			}
