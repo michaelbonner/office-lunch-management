@@ -1,0 +1,2 @@
+CREATE INDEX "organization_work_email_domain_idx" ON "organization" USING btree ("work_email_domain" text_ops);--> statement-breakpoint
+ALTER TABLE "member" ADD CONSTRAINT "member_user_org_unique" UNIQUE("userId","organizationId");

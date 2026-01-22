@@ -80,24 +80,17 @@ export async function addUserToOrganization(
 	role: 'owner' | 'admin' | 'member' = 'member'
 ) {
 	try {
-		// Check if user is already a member
-		const existingMember = await db
-			.select({ id: member.id })
-			.from(member)
-			.where(and(eq(member.userId, userId), eq(member.organizationId, organizationId)))
-			.limit(1);
-
-		if (existingMember.length > 0) {
-			return; // User already a member
-		}
-
-		// Add user as member
-		await db.insert(member).values({
-			id: crypto.randomUUID(),
-			organizationId,
-			userId,
-			role
-		});
+		// Use onConflictDoNothing to handle race conditions atomically
+		// The unique constraint on (userId, organizationId) prevents duplicates
+		await db
+			.insert(member)
+			.values({
+				id: crypto.randomUUID(),
+				organizationId,
+				userId,
+				role
+			})
+			.onConflictDoNothing();
 	} catch (error) {
 		console.error('Error adding user to organization:', error);
 		throw error;
