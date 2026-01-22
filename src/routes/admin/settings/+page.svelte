@@ -5,10 +5,14 @@
 
 	let { data }: { data: PageData } = $props();
 
-	let workEmailDomain = $state(data.organization.workEmailDomain || '');
+	let workEmailDomain = $state('');
 	let saving = $state(false);
 	let error = $state('');
 	let success = $state('');
+
+	$effect(() => {
+		workEmailDomain = data.organization.workEmailDomain || '';
+	});
 
 	async function saveWorkEmailDomain() {
 		saving = true;

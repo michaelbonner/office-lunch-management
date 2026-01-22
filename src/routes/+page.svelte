@@ -9,9 +9,14 @@
 
 	let isOptingIn = $state(false);
 	let optInError = $state<string | null>(null);
-	let isOptedIn = $state.raw(data?.optInStatus?.optedIn ?? false);
+	let isOptedIn = $state(false);
 
-	function formatLongDate(dateString: string): string {
+	$effect(() => {
+		isOptedIn = data?.optInStatus?.optedIn ?? false;
+	});
+
+	function formatLongDate(dateString: string | null): string {
+		if (!dateString) return '';
 		// Parse the date string (YYYY-MM-DD) and create a date in local timezone
 		const [year, month, day] = dateString.split('-').map(Number);
 		return new Date(year, month - 1, day).toLocaleDateString('en-US', {
