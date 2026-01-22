@@ -180,7 +180,13 @@ export const organization = pgTable(
 		metadata: text(),
 		workEmailDomain: text('work_email_domain')
 	},
-	(table) => [unique('organization_slug_key').on(table.slug)]
+	(table) => [
+		unique('organization_slug_key').on(table.slug),
+		index('organization_work_email_domain_idx').using(
+			'btree',
+			table.workEmailDomain.asc().nullsLast().op('text_ops')
+		)
+	]
 );
 
 export const member = pgTable(
@@ -193,6 +199,7 @@ export const member = pgTable(
 		createdAt: timestamp({ withTimezone: true, mode: 'string' }).notNull().defaultNow()
 	},
 	(table) => [
+		unique('member_user_org_unique').on(table.userId, table.organizationId),
 		index('member_organizationId_idx').using(
 			'btree',
 			table.organizationId.asc().nullsLast().op('text_ops')

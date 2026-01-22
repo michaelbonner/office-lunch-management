@@ -70,11 +70,12 @@ export const auth = betterAuth({
 						}
 
 						// Auto-join organizations that have a matching work email domain
-						const emailDomain = user.email.split('@')[1];
+						const emailParts = user.email.split('@');
+						const emailDomain = emailParts.length === 2 ? emailParts[1] : null;
 						if (emailDomain) {
 							const matchingOrgs = await getOrganizationsByWorkEmailDomain(emailDomain);
 							for (const org of matchingOrgs) {
-								// addUserToOrganization already handles duplicate prevention
+								// onConflictDoNothing in addUserToOrganization prevents race conditions
 								await addUserToOrganization(user.id, org.id, 'member');
 							}
 						}

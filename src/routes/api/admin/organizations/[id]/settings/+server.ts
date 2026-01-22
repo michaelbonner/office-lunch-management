@@ -32,18 +32,33 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 				throw error(400, 'Work email domain must be a string');
 			}
 
-			// Basic domain validation if not empty
+			// Domain validation if not empty
 			if (workEmailDomain.trim()) {
 				const domain = workEmailDomain.trim().toLowerCase();
-				// Simple validation: no @ symbol, at least one dot, no spaces
+
+				// Check minimum length
+				if (domain.length < 4) {
+					throw error(400, 'Domain must be at least 4 characters (e.g., a.co)');
+				}
+
+				// More robust domain validation using regex
+				// Allows valid domain names like example.com, sub.example.com, etc.
+				const domainRegex =
+					/^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$/i;
+
+				if (!domainRegex.test(domain)) {
+					throw error(
+						400,
+						'Invalid domain format. Must be a valid domain name (e.g., example.com)'
+					);
+				}
+
+				// Additional checks
 				if (domain.includes('@')) {
 					throw error(400, 'Domain should not include @ symbol');
 				}
 				if (domain.includes(' ')) {
 					throw error(400, 'Domain should not include spaces');
-				}
-				if (!domain.includes('.')) {
-					throw error(400, 'Invalid domain format');
 				}
 			}
 		}
