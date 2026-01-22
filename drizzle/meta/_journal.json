@@ -50,6 +50,13 @@
       "when": 1767897134668,
       "tag": "0006_needy_boomer",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1769098884834,
+      "tag": "0007_smiling_silver_centurion",
+      "breakpoints": true
     }
   ]
 }

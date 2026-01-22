@@ -177,7 +177,8 @@ export const organization = pgTable(
 		slug: text().notNull(),
 		logo: text(),
 		createdAt: timestamp({ withTimezone: true, mode: 'string' }).notNull().defaultNow(),
-		metadata: text()
+		metadata: text(),
+		workEmailDomain: text('work_email_domain')
 	},
 	(table) => [unique('organization_slug_key').on(table.slug)]
 );

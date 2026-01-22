@@ -4,7 +4,18 @@
 	import UserForm from '$lib/components/UserForm.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import type { PageData } from './$types';
-	import { Utensils, Check, List, Pencil, Trash, X, Search, Building, Users } from '@lucide/svelte';
+	import {
+		Utensils,
+		Check,
+		List,
+		Pencil,
+		Trash,
+		X,
+		Search,
+		Building,
+		Users,
+		Settings
+	} from '@lucide/svelte';
 
 	let { data = $bindable() }: { data: PageData } = $props();
 
@@ -241,6 +252,10 @@
 				organizations={data.userOrganizations || []}
 				activeOrganizationId={data.activeOrganizationId}
 			/>
+			<Button variant="outline" href="/admin/settings" class="gap-2">
+				<Settings size={16} />
+				Settings
+			</Button>
 			<Button variant="outline" href="/" class="gap-2">← Back to Home</Button>
 		</div>
 	</div>

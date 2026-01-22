@@ -6,7 +6,12 @@ import {
 	GOOGLE_CLIENT_ID,
 	GOOGLE_CLIENT_SECRET
 } from '$env/static/private';
-import { createOrganizationForUser, getUserOrganizations } from './server/organization';
+import {
+	addUserToOrganization,
+	createOrganizationForUser,
+	getOrganizationsByWorkEmailDomain,
+	getUserOrganizations
+} from './server/organization';
 import { APIError, betterAuth } from 'better-auth';
 import { admin, createAuthMiddleware, organization } from 'better-auth/plugins';
 import { sveltekitCookies } from 'better-auth/svelte-kit';
@@ -62,6 +67,16 @@ export const auth = betterAuth({
 						if (existingOrgs.length === 0) {
 							// Create new organization for this user
 							await createOrganizationForUser(user.id, user.email, user.name || 'User');
+						}
+
+						// Auto-join organizations that have a matching work email domain
+						const emailDomain = user.email.split('@')[1];
+						if (emailDomain) {
+							const matchingOrgs = await getOrganizationsByWorkEmailDomain(emailDomain);
+							for (const org of matchingOrgs) {
+								// addUserToOrganization already handles duplicate prevention
+								await addUserToOrganization(user.id, org.id, 'member');
+							}
 						}
 					} catch (error) {
 						console.error('Failed to create organization for user:', error);
