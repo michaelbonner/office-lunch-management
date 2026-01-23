@@ -6,12 +6,7 @@ import {
 	GOOGLE_CLIENT_ID,
 	GOOGLE_CLIENT_SECRET
 } from '$env/static/private';
-import {
-	addUserToOrganization,
-	createOrganizationForUser,
-	getOrganizationsByWorkEmailDomain,
-	getUserOrganizations
-} from './server/organization';
+import { createOrganizationForUser, getUserOrganizations } from './server/organization';
 import { APIError, betterAuth } from 'better-auth';
 import { admin, createAuthMiddleware, organization } from 'better-auth/plugins';
 import { sveltekitCookies } from 'better-auth/svelte-kit';
@@ -50,18 +45,13 @@ export const auth = betterAuth({
 			}
 		}),
 		after: createAuthMiddleware(async (ctx) => {
-			// Run organization logic for sign-up, callback, and sign-in
-			// This allows both new user org creation and auto-join for existing users
-			if (
-				!ctx.path ||
-				(!ctx.path.includes('/sign-up') &&
-					!ctx.path.includes('/callback') &&
-					!ctx.path.includes('/sign-in'))
-			) {
+			// Only create organizations for new sign-ups (email sign-up specifically)
+			// Auto-join is handled in hooks.server.ts for all auth methods
+			if (!ctx.path || !ctx.path.includes('/sign-up')) {
 				return;
 			}
 
-			// Process user data from auth response
+			// Create organization for new users signing up via email
 			if (ctx.body && typeof ctx.body === 'object' && 'user' in ctx.body) {
 				const user = ctx.body.user as { id: string; email: string; name: string };
 				if (user?.id && user?.email) {
@@ -69,25 +59,13 @@ export const auth = betterAuth({
 						// Check if user already has an organization
 						const existingOrgs = await getUserOrganizations(user.id);
 
-						// Only create new organization for users without any organizations (new users)
 						if (existingOrgs.length === 0) {
+							// Create new organization for this user
 							await createOrganizationForUser(user.id, user.email, user.name || 'User');
 						}
-
-						// Auto-join organizations that have a matching work email domain
-						// This runs for both new and existing users on every sign-in
-						const emailParts = user.email.split('@');
-						const emailDomain = emailParts.length === 2 ? emailParts[1] : null;
-						if (emailDomain) {
-							const matchingOrgs = await getOrganizationsByWorkEmailDomain(emailDomain);
-							for (const org of matchingOrgs) {
-								// onConflictDoNothing in addUserToOrganization prevents duplicates
-								await addUserToOrganization(user.id, org.id, 'member');
-							}
-						}
 					} catch (error) {
-						console.error('Failed to process organization logic for user:', error);
-						// Don't fail the auth flow if organization operations fail
+						console.error('Failed to create organization for user:', error);
+						// Don't fail the auth flow if organization creation fails
 					}
 				}
 			}

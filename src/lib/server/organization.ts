@@ -38,7 +38,8 @@ export async function createOrganizationForUser(
 			id: crypto.randomUUID(),
 			organizationId: org.id,
 			userId,
-			role: 'owner'
+			role: 'owner',
+			createdAt: new Date().toISOString()
 		});
 
 		return org;
@@ -88,7 +89,8 @@ export async function addUserToOrganization(
 				id: crypto.randomUUID(),
 				organizationId,
 				userId,
-				role
+				role,
+				createdAt: new Date().toISOString()
 			})
 			.onConflictDoNothing();
 	} catch (error) {
