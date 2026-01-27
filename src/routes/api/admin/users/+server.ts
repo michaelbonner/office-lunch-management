@@ -1,14 +1,15 @@
 import { db } from '$lib/server/db';
+import { getTodayDate } from '$lib/server/opt-in';
 import {
 	addUserToOrganization,
 	getUserOrganizations,
 	getUsersInSameOrganizations,
 	isUserAdmin
 } from '$lib/server/organization';
-import { member, user as userTable } from '../../../../../drizzle/schema';
+import { member, optIn, user as userTable } from '../../../../../drizzle/schema';
 import type { RequestHandler } from './$types';
 import { error, json } from '@sveltejs/kit';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 
 export const POST: RequestHandler = async ({ locals, request }) => {
 	const user = locals.user;
@@ -125,7 +126,27 @@ export const GET: RequestHandler = async ({ locals }) => {
 		// Get users in the same organization(s) as the admin
 		const users = await getUsersInSameOrganizations(user.id);
 
-		return json({ users });
+		// Get today's opt-ins for admin's organizations
+		const today = getTodayDate();
+		const adminOrgs = await getUserOrganizations(user.id);
+		const adminOrgIds = adminOrgs.map((org) => org.id);
+
+		let optedInUserIds: string[] = [];
+		if (adminOrgIds.length > 0) {
+			const optIns = await db
+				.select({ userId: optIn.userId })
+				.from(optIn)
+				.where(and(eq(optIn.optInDate, today), inArray(optIn.organizationId, adminOrgIds)));
+			optedInUserIds = optIns.map((o) => o.userId);
+		}
+
+		// Add opt-in status to each user
+		const usersWithOptIn = users.map((u) => ({
+			...u,
+			optedInToday: optedInUserIds.includes(u.id)
+		}));
+
+		return json({ users: usersWithOptIn });
 	} catch (err) {
 		console.error('Error listing users:', err);
 		throw error(500, 'Failed to list users');

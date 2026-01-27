@@ -14,7 +14,8 @@
 		Search,
 		Building,
 		Users,
-		Settings
+		Settings,
+		UtensilsCrossed
 	} from '@lucide/svelte';
 
 	let { data = $bindable() }: { data: PageData } = $props();
@@ -23,6 +24,7 @@
 	let activeTab = $state<'restaurants' | 'users'>('restaurants');
 	let restaurantSearch = $state('');
 	let userSearch = $state('');
+	let userOptInFilter = $state<'all' | 'opted-in' | 'not-opted-in'>('all');
 
 	// Data
 	let users = $state<any[]>([]);
@@ -47,12 +49,21 @@
 	);
 
 	let filteredUsers = $derived(
-		users.filter(
-			(u) =>
+		users.filter((u) => {
+			const matchesSearch =
 				u.name?.toLowerCase().includes(userSearch.toLowerCase()) ||
-				u.email?.toLowerCase().includes(userSearch.toLowerCase())
-		)
+				u.email?.toLowerCase().includes(userSearch.toLowerCase());
+
+			if (!matchesSearch) return false;
+
+			if (userOptInFilter === 'opted-in') return u.optedInToday;
+			if (userOptInFilter === 'not-opted-in') return !u.optedInToday;
+			return true;
+		})
 	);
+
+	let optedInCount = $derived(users.filter((u) => u.optedInToday).length);
+	let notOptedInCount = $derived(users.filter((u) => !u.optedInToday).length);
 
 	async function refreshRestaurants() {
 		const response = await fetch('/api/restaurants');
@@ -462,16 +473,52 @@
 
 			<!-- Right Column: List -->
 			<div class="md:col-span-12 lg:col-span-8">
-				<div class="mb-4 flex items-center justify-between gap-4">
-					<h2 class="text-lg font-semibold">All Users ({users.length})</h2>
-					<div class="relative w-full max-w-xs">
-						<Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-						<input
-							type="text"
-							placeholder="Search users..."
-							bind:value={userSearch}
-							class="w-full rounded-md border bg-background pl-9 pr-4 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
-						/>
+				<div class="mb-4 space-y-3">
+					<div class="flex items-center justify-between gap-4">
+						<h2 class="text-lg font-semibold">All Users ({users.length})</h2>
+						<div class="relative w-full max-w-xs">
+							<Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+							<input
+								type="text"
+								placeholder="Search users..."
+								bind:value={userSearch}
+								class="w-full rounded-md border bg-background pl-9 pr-4 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
+							/>
+						</div>
+					</div>
+					<!-- Opt-in filter buttons -->
+					<div class="flex flex-wrap items-center gap-2">
+						<span class="text-sm text-muted-foreground">Today's lunch:</span>
+						<button
+							onclick={() => (userOptInFilter = 'all')}
+							class="rounded-full px-3 py-1 text-sm font-medium transition-colors {userOptInFilter ===
+							'all'
+								? 'bg-primary text-primary-foreground'
+								: 'bg-muted text-muted-foreground hover:bg-muted/80'}"
+						>
+							All ({users.length})
+						</button>
+						<button
+							onclick={() => (userOptInFilter = 'opted-in')}
+							class="rounded-full px-3 py-1 text-sm font-medium transition-colors {userOptInFilter ===
+							'opted-in'
+								? 'bg-green-600 text-white'
+								: 'bg-green-100 text-green-700 hover:bg-green-200'}"
+						>
+							<span class="inline-flex items-center gap-1">
+								<UtensilsCrossed size={14} />
+								Opted In ({optedInCount})
+							</span>
+						</button>
+						<button
+							onclick={() => (userOptInFilter = 'not-opted-in')}
+							class="rounded-full px-3 py-1 text-sm font-medium transition-colors {userOptInFilter ===
+							'not-opted-in'
+								? 'bg-gray-600 text-white'
+								: 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+						>
+							Not Opted In ({notOptedInCount})
+						</button>
 					</div>
 				</div>
 
@@ -553,6 +600,15 @@
 												>
 													{user.memberRole || 'member'}
 												</span>
+												{#if user.optedInToday}
+													<span
+														class="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700"
+														title="Opted in for lunch today"
+													>
+														<UtensilsCrossed size={10} />
+														Lunch
+													</span>
+												{/if}
 											</div>
 											<p class="text-sm text-muted-foreground truncate">{user.email}</p>
 										</div>
