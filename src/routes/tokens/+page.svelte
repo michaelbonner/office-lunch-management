@@ -2,11 +2,12 @@
 	import { invalidate } from '$app/navigation';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import type { PageData } from './$types';
-	import { CircleCheck, Copy, Key, Plus, Trash2 } from '@lucide/svelte';
+	import { CircleCheck, Copy, Eye, EyeOff, Key, Plus, Trash2 } from '@lucide/svelte';
 
 	let { data = $bindable() }: { data: PageData } = $props();
 
 	let showCreateForm = $state(false);
+	let showTokens = $state(false);
 	let tokenName = $state('');
 	let expiresInDays = $state('');
 	let isCreating = $state(false);
@@ -252,7 +253,22 @@
 	</div>
 
 	<div>
-		<h2 class="mb-4 text-xl font-semibold">Your Tokens</h2>
+		<div class="mb-4 flex items-center justify-between">
+			<h2 class="text-xl font-semibold">Your Tokens</h2>
+			{#if data.tokens.length > 0}
+				<Button variant="outline" size="sm" onclick={() => (showTokens = !showTokens)}>
+					{#snippet children()}
+						{#if showTokens}
+							<EyeOff size={16} class="mr-1.5" />
+							Hide Tokens
+						{:else}
+							<Eye size={16} class="mr-1.5" />
+							Show Tokens
+						{/if}
+					{/snippet}
+				</Button>
+			{/if}
+		</div>
 		{#if data.tokens.length === 0}
 			<div
 				class="rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm p-8 text-center"
@@ -261,6 +277,16 @@
 				<p class="mb-2 font-medium">No tokens yet</p>
 				<p class="text-sm text-muted-foreground">
 					Create your first API token to get started with programmatic access
+				</p>
+			</div>
+		{:else if !showTokens}
+			<div
+				class="rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm p-6 text-center"
+			>
+				<Key class="mx-auto mb-3 text-muted-foreground" size={32} />
+				<p class="text-sm text-muted-foreground">
+					{data.tokens.length} token{data.tokens.length === 1 ? '' : 's'} hidden. Click "Show Tokens"
+					to view.
 				</p>
 			</div>
 		{:else}
