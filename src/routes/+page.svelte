@@ -8,7 +8,9 @@
 	let { data }: { data: PageData } = $props();
 
 	let isOptingIn = $state(false);
+	let isOptingOut = $state(false);
 	let optInError = $state<string | null>(null);
+	let optOutError = $state<string | null>(null);
 	let isOptedIn = $state(false);
 
 	$effect(() => {
@@ -51,6 +53,33 @@
 			optInError = 'Failed to opt in. Please try again.';
 		} finally {
 			isOptingIn = false;
+		}
+	}
+
+	async function handleOptOut() {
+		isOptingOut = true;
+		optOutError = null;
+
+		try {
+			const response = await fetch('/api/v1/opt-in', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ action: 'out' })
+			});
+
+			if (!response.ok) {
+				throw new Error('Failed to opt out');
+			}
+
+			const result = await response.json();
+			isOptedIn = result.optedIn;
+		} catch (error) {
+			console.error('Error opting out:', error);
+			optOutError = 'Failed to opt out. Please try again.';
+		} finally {
+			isOptingOut = false;
 		}
 	}
 </script>
@@ -114,6 +143,16 @@
 										<div class="flex-1">
 											<p class="font-medium text-green-800">You're opted in for today</p>
 											<p class="text-sm text-gray-600">Date: {formatLongDate(data.todayDate)}</p>
+											{#if optOutError}
+												<p class="mt-2 text-sm text-red-600">{optOutError}</p>
+											{/if}
+											<button
+												onclick={handleOptOut}
+												disabled={isOptingOut}
+												class="mt-3 inline-block rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+											>
+												{isOptingOut ? 'Opting Out...' : 'Opt Out'}
+											</button>
 										</div>
 									{:else}
 										<span class="text-2xl">⊘</span>
