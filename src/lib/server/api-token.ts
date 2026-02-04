@@ -3,6 +3,7 @@ import { db } from './db';
 import { randomBytes, createHash } from 'crypto';
 import { eq, and, isNull, gt, lt, or } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
+import { encrypt, decrypt } from './encryption';
 
 /**
  * Generate a secure random API token
@@ -30,6 +31,9 @@ export async function createApiToken(params: {
 }): Promise<{ id: string; token: string; name: string; createdAt: string }> {
 	const token = generateToken();
 	const hashedToken = hashToken(token);
+	const encryptedToken = encrypt(token);
+	// Show first 4 chars + last 4 chars for preview (e.g., "olm_...abc1")
+	const tokenPreview = `${token.substring(0, 8)}...${token.substring(token.length - 4)}`;
 
 	const [newToken] = await db
 		.insert(apiToken)
@@ -37,6 +41,8 @@ export async function createApiToken(params: {
 			id: nanoid(),
 			userId: params.userId,
 			token: hashedToken,
+			encryptedToken,
+			tokenPreview,
 			name: params.name,
 			expiresAt: params.expiresAt?.toISOString()
 		})
@@ -100,13 +106,15 @@ export async function validateToken(token: string): Promise<string | null> {
 }
 
 /**
- * Get all tokens for a user (without the actual token values)
+ * Get all tokens for a user (with encrypted tokens for display)
  */
 export async function getUserTokens(userId: string) {
 	return db
 		.select({
 			id: apiToken.id,
 			name: apiToken.name,
+			encryptedToken: apiToken.encryptedToken,
+			tokenPreview: apiToken.tokenPreview,
 			lastUsedAt: apiToken.lastUsedAt,
 			expiresAt: apiToken.expiresAt,
 			createdAt: apiToken.createdAt
@@ -114,6 +122,13 @@ export async function getUserTokens(userId: string) {
 		.from(apiToken)
 		.where(eq(apiToken.userId, userId))
 		.orderBy(apiToken.createdAt);
+}
+
+/**
+ * Decrypt a token for display
+ */
+export function decryptToken(encryptedToken: string): string {
+	return decrypt(encryptedToken);
 }
 
 /**

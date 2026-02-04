@@ -2,7 +2,7 @@
 	import { invalidate } from '$app/navigation';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import type { PageData } from './$types';
-	import { CircleCheck, Copy, Key, Plus, Trash2 } from '@lucide/svelte';
+	import { CircleCheck, Copy, Eye, EyeOff, Key, Plus, Trash2 } from '@lucide/svelte';
 
 	let { data = $bindable() }: { data: PageData } = $props();
 
@@ -12,6 +12,47 @@
 	let isCreating = $state(false);
 	let newlyCreatedToken = $state<{ token: string; name: string } | null>(null);
 	let copied = $state(false);
+
+	// Track which tokens are revealed and their values
+	let revealedTokens = $state<Record<string, string>>({});
+	let loadingTokens = $state<Record<string, boolean>>({});
+
+	async function toggleTokenVisibility(tokenId: string) {
+		if (revealedTokens[tokenId]) {
+			// Hide the token
+			delete revealedTokens[tokenId];
+			revealedTokens = { ...revealedTokens };
+		} else {
+			// Reveal the token
+			loadingTokens[tokenId] = true;
+			loadingTokens = { ...loadingTokens };
+
+			try {
+				const response = await fetch(`/api/tokens/${tokenId}/reveal`);
+				if (response.ok) {
+					const data = await response.json();
+					revealedTokens[tokenId] = data.token;
+					revealedTokens = { ...revealedTokens };
+				} else {
+					const error = await response.json();
+					alert(error.error || 'Failed to reveal token');
+				}
+			} catch (err) {
+				alert('Failed to reveal token');
+			} finally {
+				loadingTokens[tokenId] = false;
+				loadingTokens = { ...loadingTokens };
+			}
+		}
+	}
+
+	function copyTokenToClipboard(token: string) {
+		navigator.clipboard.writeText(token);
+		copied = true;
+		setTimeout(() => {
+			copied = false;
+		}, 2000);
+	}
 
 	// JSON examples for API documentation
 	const optInRequest = '{"action": "in"}';
@@ -269,36 +310,92 @@
 			<div class="space-y-3">
 				{#each data.tokens as token}
 					<div
-						class="flex items-center justify-between rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm p-4"
+						class="rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm p-4"
 					>
-						<div class="flex-1">
-							<div class="mb-1 flex items-center gap-2">
-								<h3 class="font-medium">{token.name}</h3>
-								{#if token.expiresAt && isExpired(token.expiresAt)}
-									<span class="rounded bg-destructive/10 px-2 py-0.5 text-xs text-destructive">
-										Expired
-									</span>
-								{/if}
+						<div class="flex items-center justify-between">
+							<div class="flex-1">
+								<div class="mb-1 flex items-center gap-2">
+									<h3 class="font-medium">{token.name}</h3>
+									{#if token.expiresAt && isExpired(token.expiresAt)}
+										<span class="rounded bg-destructive/10 px-2 py-0.5 text-xs text-destructive">
+											Expired
+										</span>
+									{/if}
+								</div>
+								<div class="flex flex-wrap gap-3 text-sm text-muted-foreground">
+									<span>Created: {formatDate(token.createdAt)}</span>
+									{#if token.lastUsedAt}
+										<span>Last used: {formatDate(token.lastUsedAt)}</span>
+									{:else}
+										<span>Never used</span>
+									{/if}
+									{#if token.expiresAt}
+										<span>Expires: {formatDate(token.expiresAt)}</span>
+									{:else}
+										<span>No expiration</span>
+									{/if}
+								</div>
 							</div>
-							<div class="flex flex-wrap gap-3 text-sm text-muted-foreground">
-								<span>Created: {formatDate(token.createdAt)}</span>
-								{#if token.lastUsedAt}
-									<span>Last used: {formatDate(token.lastUsedAt)}</span>
-								{:else}
-									<span>Never used</span>
-								{/if}
-								{#if token.expiresAt}
-									<span>Expires: {formatDate(token.expiresAt)}</span>
-								{:else}
-									<span>No expiration</span>
-								{/if}
-							</div>
+							<Button variant="ghost" size="sm" onclick={() => deleteToken(token.id, token.name)}>
+								{#snippet children()}
+									<Trash2 size={16} />
+								{/snippet}
+							</Button>
 						</div>
-						<Button variant="ghost" size="sm" onclick={() => deleteToken(token.id, token.name)}>
-							{#snippet children()}
-								<Trash2 size={16} />
-							{/snippet}
-						</Button>
+
+						<!-- Token display with show/hide -->
+						<div class="mt-3 pt-3 border-t border-yellow-900/10">
+							<div class="flex items-center gap-2">
+								<div class="flex-1 rounded bg-muted px-3 py-2">
+									<code class="text-sm font-mono break-all">
+										{#if revealedTokens[token.id]}
+											{revealedTokens[token.id]}
+										{:else if token.tokenPreview}
+											{token.tokenPreview}
+										{:else}
+											<span class="text-muted-foreground">olm_••••••••••••</span>
+										{/if}
+									</code>
+								</div>
+								{#if token.encryptedToken}
+									<Button
+										variant="outline"
+										size="sm"
+										onclick={() => toggleTokenVisibility(token.id)}
+										disabled={loadingTokens[token.id]}
+									>
+										{#snippet children()}
+											{#if loadingTokens[token.id]}
+												<span class="animate-pulse">...</span>
+											{:else if revealedTokens[token.id]}
+												<EyeOff size={16} class="mr-1" />
+												Hide
+											{:else}
+												<Eye size={16} class="mr-1" />
+												Show
+											{/if}
+										{/snippet}
+									</Button>
+								{/if}
+								{#if revealedTokens[token.id]}
+									<Button
+										variant="outline"
+										size="sm"
+										onclick={() => copyTokenToClipboard(revealedTokens[token.id])}
+									>
+										{#snippet children()}
+											<Copy size={16} class="mr-1" />
+											Copy
+										{/snippet}
+									</Button>
+								{/if}
+							</div>
+							{#if !token.encryptedToken}
+								<p class="mt-2 text-xs text-muted-foreground">
+									This token was created before the show/hide feature. Create a new token to use this feature.
+								</p>
+							{/if}
+						</div>
 					</div>
 				{/each}
 			</div>

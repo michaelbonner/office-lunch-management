@@ -257,6 +257,8 @@ export const apiToken = pgTable(
 		id: text().primaryKey().notNull(),
 		userId: text('user_id').notNull(),
 		token: text().notNull(),
+		encryptedToken: text('encrypted_token'),
+		tokenPreview: text('token_preview'),
 		name: text().notNull(),
 		lastUsedAt: timestamp('last_used_at', { withTimezone: true, mode: 'string' }),
 		expiresAt: timestamp('expires_at', { withTimezone: true, mode: 'string' }),
