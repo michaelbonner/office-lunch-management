@@ -50,6 +50,7 @@
 	let editingOrderDetails = $state('');
 	let creatingOrderForUserId = $state<string | null>(null);
 	let creatingOrderDetails = $state('');
+	let sortBy = $state<'name' | 'optInTime'>('name');
 
 	function getCheckedOrdersKey(restaurantId: string): string {
 		const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Denver' });
@@ -81,6 +82,22 @@
 	// Create Set of opted-in user IDs for fast lookup
 	let optedInUserIds = $derived(new Set(data.optedInUsers.map((u) => u.id)));
 
+	// Map of user ID → opt-in createdAt for sorting by opt-in time
+	let optInTimeByUserId = $derived(new Map(data.optedInUsers.map((u) => [u.id, u.createdAt])));
+
+	function sortUsers<T extends { name: string; id: string }>(users: T[]): T[] {
+		return [...users].sort((a, b) => {
+			if (sortBy === 'name') {
+				return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+			}
+			const timeA = optInTimeByUserId.get(a.id) ?? '';
+			const timeB = optInTimeByUserId.get(b.id) ?? '';
+			if (timeA < timeB) return -1;
+			if (timeA > timeB) return 1;
+			return 0;
+		});
+	}
+
 	// Only show users who are opted in
 	let optedInUsersWithOrders = $derived(
 		selectedRestaurantId
@@ -98,9 +115,9 @@
 			: []
 	);
 
-	// Split opted-in users into those with and without orders
-	let usersWithOrders = $derived(optedInUsersWithOrders.filter((u) => !!u.order));
-	let usersWithoutOrders = $derived(optedInUsersWithOrders.filter((u) => !u.order));
+	// Split opted-in users into those with and without orders, then sort
+	let usersWithOrders = $derived(sortUsers(optedInUsersWithOrders.filter((u) => !!u.order)));
+	let usersWithoutOrders = $derived(sortUsers(optedInUsersWithOrders.filter((u) => !u.order)));
 
 	// Users who haven't opted in yet
 	let notOptedInUsersList = $derived(
@@ -357,6 +374,26 @@
 			<p class="mt-2 text-sm text-muted-foreground">Loading orders...</p>
 		{/if}
 	</div>
+
+	{#if selectedRestaurantId}
+		<div class="mb-6 flex items-center gap-2">
+			<span class="text-sm font-medium text-muted-foreground">Sort by:</span>
+			<Button
+				size="sm"
+				variant={sortBy === 'name' ? 'default' : 'outline'}
+				onclick={() => (sortBy = 'name')}
+			>
+				Name
+			</Button>
+			<Button
+				size="sm"
+				variant={sortBy === 'optInTime' ? 'default' : 'outline'}
+				onclick={() => (sortBy = 'optInTime')}
+			>
+				Opt-In Time
+			</Button>
+		</div>
+	{/if}
 
 	{#if error}
 		<div class="mb-6 rounded-md bg-destructive/10 p-4 text-destructive">
