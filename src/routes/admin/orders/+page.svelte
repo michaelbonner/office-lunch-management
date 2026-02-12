@@ -51,6 +51,33 @@
 	let creatingOrderForUserId = $state<string | null>(null);
 	let creatingOrderDetails = $state('');
 
+	function getCheckedOrdersKey(restaurantId: string): string {
+		const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Denver' });
+		return `checkedOrders-${today}-${restaurantId}`;
+	}
+
+	function saveCheckedOrders() {
+		if (!selectedRestaurantId) return;
+		localStorage.setItem(
+			getCheckedOrdersKey(selectedRestaurantId),
+			JSON.stringify([...checkedOrders])
+		);
+	}
+
+	function restoreCheckedOrders() {
+		checkedOrders.clear();
+		if (!selectedRestaurantId) return;
+		const stored = localStorage.getItem(getCheckedOrdersKey(selectedRestaurantId));
+		if (stored) {
+			try {
+				const ids: string[] = JSON.parse(stored);
+				ids.forEach((id) => checkedOrders.add(id));
+			} catch {
+				// ignore invalid data
+			}
+		}
+	}
+
 	// Create Set of opted-in user IDs for fast lookup
 	let optedInUserIds = $derived(new Set(data.optedInUsers.map((u) => u.id)));
 
@@ -91,7 +118,6 @@
 
 		loading = true;
 		error = '';
-		checkedOrders.clear(); // Reset checked orders when loading new restaurant
 
 		try {
 			const response = await fetch(`/api/admin/orders?restaurantId=${selectedRestaurantId}`);
@@ -101,6 +127,7 @@
 			}
 
 			orders = await response.json();
+			restoreCheckedOrders();
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'An error occurred';
 			orders = [];
@@ -115,15 +142,18 @@
 		} else {
 			checkedOrders.add(orderId);
 		}
+		saveCheckedOrders();
 	}
 
 	function resetChecks() {
 		checkedOrders.clear();
+		saveCheckedOrders();
 	}
 
 	function removeOrder(orderId: string) {
 		orders = orders.filter((order) => order.id !== orderId);
 		checkedOrders.delete(orderId);
+		saveCheckedOrders();
 	}
 
 	function startEditing(order: Order) {
@@ -297,6 +327,7 @@
 		} else {
 			orders = [];
 			checkedOrders.clear();
+			// Don't save to localStorage here — clearing is just UI cleanup when deselecting
 		}
 	});
 </script>
