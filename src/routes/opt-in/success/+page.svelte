@@ -1,7 +1,10 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import Button from '$lib/components/ui/button/button.svelte';
+	import type { PageData } from './$types';
 	import { Check } from '@lucide/svelte';
+
+	let { data }: { data: PageData } = $props();
 
 	const action = $page.url.searchParams.get('action');
 	const isOptIn = action === 'in';
@@ -29,6 +32,12 @@
 				You have opted out of lunch for today. You will not appear in the ordering list.
 			{/if}
 		</p>
+
+		{#if isOptIn && data.optInTime}
+			<p class="text-sm text-muted-foreground">
+				You first clocked in at <span class="font-medium text-foreground">{data.optInTime}</span>.
+			</p>
+		{/if}
 
 		<div class="my-8 flex flex-col gap-2">
 			{#if isOptIn}
