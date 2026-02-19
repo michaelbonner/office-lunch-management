@@ -35,7 +35,7 @@
 
 		{#if isOptIn && data.optInTime}
 			<p class="text-sm text-muted-foreground">
-				You first clocked in at <span class="font-medium text-foreground">{data.optInTime}</span>.
+				You first opted in at <span class="font-medium text-foreground">{data.optInTime}</span>.
 			</p>
 		{/if}
 
