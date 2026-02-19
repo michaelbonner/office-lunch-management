@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import type { PageData } from './$types';
 	import { Check } from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
 
-	const action = $page.url.searchParams.get('action');
+	const action = page.url.searchParams.get('action');
 	const isOptIn = action === 'in';
 </script>
 
