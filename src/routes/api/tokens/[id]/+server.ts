@@ -1,6 +1,6 @@
+import { error, json } from '@sveltejs/kit';
 import { deleteToken } from '$lib/server/api-token';
 import type { RequestHandler } from './$types';
-import { error, json } from '@sveltejs/kit';
 
 export const DELETE: RequestHandler = async ({ params, locals }) => {
 	const user = locals.user;

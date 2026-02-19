@@ -1,10 +1,10 @@
 <script lang="ts">
+	import { Pencil, Plus, Trash } from '@lucide/svelte';
+	import { SvelteSet } from 'svelte/reactivity';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/stores';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import type { PageData } from './$types';
-	import { Pencil, Plus, Trash } from '@lucide/svelte';
-	import { SvelteSet } from 'svelte/reactivity';
 
 	let { data }: { data: PageData } = $props();
 

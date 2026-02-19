@@ -1,7 +1,7 @@
-import { session, organization, member } from '../../../drizzle/schema';
+import { and, eq } from 'drizzle-orm';
+import { member, organization, session } from '../../../drizzle/schema';
 import { db } from './db';
 import { getUserOrganizations } from './organization';
-import { eq, and } from 'drizzle-orm';
 
 /**
  * Get active organization ID from session or return user's first organization

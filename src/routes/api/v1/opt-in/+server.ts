@@ -1,7 +1,7 @@
-import { authenticateRequest } from '$lib/server/api-auth';
-import { optUserIn, optUserOut, getTodayDate, isUserOptedIn } from '$lib/server/opt-in';
-import type { RequestHandler } from './$types';
 import { error, json } from '@sveltejs/kit';
+import { authenticateRequest } from '$lib/server/api-auth';
+import { getTodayDate, isUserOptedIn, optUserIn, optUserOut } from '$lib/server/opt-in';
+import type { RequestHandler } from './$types';
 
 /**
  * GET /api/v1/opt-in

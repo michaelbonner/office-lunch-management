@@ -1,10 +1,10 @@
+import { redirect } from '@sveltejs/kit';
+import { eq } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import { getOptedInUsers, getNotOptedInUsers, getTodayDate } from '$lib/server/opt-in';
+import { getNotOptedInUsers, getOptedInUsers, getTodayDate } from '$lib/server/opt-in';
 import { getUsersInSameOrganizations, isUserAdmin } from '$lib/server/organization';
 import { restaurant } from '../../../../drizzle/schema';
 import type { PageServerLoad } from './$types';
-import { redirect } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const user = locals.user;

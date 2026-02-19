@@ -1,3 +1,4 @@
+import { svelteKitHandler } from 'better-auth/svelte-kit';
 import { building } from '$app/environment';
 import { auth } from '$lib/auth';
 import {
@@ -6,7 +7,6 @@ import {
 	getUserOrganizations
 } from '$lib/server/organization';
 import { getActiveOrganizationId } from '$lib/server/organization-context';
-import { svelteKitHandler } from 'better-auth/svelte-kit';
 
 export async function handle({ event, resolve }) {
 	// Fetch current session from Better Auth

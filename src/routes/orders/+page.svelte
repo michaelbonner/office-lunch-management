@@ -1,9 +1,9 @@
 <script lang="ts">
+	import { Utensils } from '@lucide/svelte';
 	import OrderForm from '$lib/components/OrderForm.svelte';
 	import OrganizationSelector from '$lib/components/OrganizationSelector.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import type { PageData } from './$types';
-	import { Utensils } from '@lucide/svelte';
 
 	let { data = $bindable() }: { data: PageData } = $props();
 

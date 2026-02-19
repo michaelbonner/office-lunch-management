@@ -1,8 +1,8 @@
 <script lang="ts">
+	import '@fontsource-variable/inter/wght.css';
 	import { Toaster } from '$lib/components/ui/sonner/index.js';
 	import '../app.css';
 	import './layout.css';
-	import '@fontsource-variable/inter/wght.css';
 
 	let { children } = $props();
 </script>

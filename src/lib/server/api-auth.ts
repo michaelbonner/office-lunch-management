@@ -1,9 +1,9 @@
-import { user } from '../../../drizzle/schema';
-import { validateToken } from './api-token';
-import { db } from './db';
 import type { RequestEvent } from '@sveltejs/kit';
 import { error } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
+import { user } from '../../../drizzle/schema';
+import { validateToken } from './api-token';
+import { db } from './db';
 
 /**
  * Extract API token from Authorization header

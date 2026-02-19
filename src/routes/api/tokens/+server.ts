@@ -1,6 +1,6 @@
+import { error, json } from '@sveltejs/kit';
 import { createApiToken, getUserTokens } from '$lib/server/api-token';
 import type { RequestHandler } from './$types';
-import { error, json } from '@sveltejs/kit';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	const user = locals.user;

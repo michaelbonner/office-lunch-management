@@ -1,3 +1,5 @@
+import { error, json } from '@sveltejs/kit';
+import { eq } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import {
 	getUsersInSameOrganizations,
@@ -7,8 +9,6 @@ import {
 } from '$lib/server/organization';
 import { user as userTable } from '../../../../../../drizzle/schema';
 import type { RequestHandler } from './$types';
-import { error, json } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
 
 export const DELETE: RequestHandler = async ({ locals, params }) => {
 	const user = locals.user;

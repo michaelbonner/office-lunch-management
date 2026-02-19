@@ -1,8 +1,8 @@
 <script lang="ts">
+	import { Check } from '@lucide/svelte';
 	import { page } from '$app/state';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import type { PageData } from './$types';
-	import { Check } from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
 

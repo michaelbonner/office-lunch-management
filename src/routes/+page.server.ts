@@ -1,4 +1,4 @@
-import { getUserOptInStatus, getTodayDate } from '$lib/server/opt-in';
+import { getTodayDate, getUserOptInStatus } from '$lib/server/opt-in';
 import { isUserAdmin, isUserSystemAdmin } from '$lib/server/organization';
 import type { PageServerLoad } from './$types';
 

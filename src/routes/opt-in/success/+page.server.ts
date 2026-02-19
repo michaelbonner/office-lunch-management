@@ -1,6 +1,6 @@
+import { formatInTimeZone } from 'date-fns-tz';
 import { getUserOptInStatus } from '$lib/server/opt-in';
 import type { PageServerLoad } from './$types';
-import { formatInTimeZone } from 'date-fns-tz';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const user = locals.user;

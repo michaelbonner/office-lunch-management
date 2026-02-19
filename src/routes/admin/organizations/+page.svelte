@@ -1,9 +1,9 @@
 <script lang="ts">
-	import Button from '$lib/components/ui/button/button.svelte';
-	import type { PageData } from './$types';
 	import { ChevronDown } from '@lucide/svelte';
 	import clsx from 'clsx';
 	import { SvelteSet } from 'svelte/reactivity';
+	import Button from '$lib/components/ui/button/button.svelte';
+	import type { PageData } from './$types';
 
 	let { data = $bindable() }: { data: PageData } = $props();
 

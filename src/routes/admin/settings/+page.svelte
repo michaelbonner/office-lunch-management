@@ -1,7 +1,7 @@
 <script lang="ts">
+	import { Building, Mail, Settings } from '@lucide/svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import type { PageData } from './$types';
-	import { Settings, Building, Mail } from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
 

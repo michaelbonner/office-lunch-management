@@ -1,6 +1,6 @@
 <script lang="ts">
-	import Button from '$lib/components/ui/button/button.svelte';
 	import { CircleCheck, Download, Key } from '@lucide/svelte';
+	import Button from '$lib/components/ui/button/button.svelte';
 </script>
 
 <svelte:head>

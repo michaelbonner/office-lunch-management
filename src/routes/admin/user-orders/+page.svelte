@@ -1,8 +1,8 @@
 <script lang="ts">
+	import { Pencil, Plus, Trash, Utensils } from '@lucide/svelte';
 	import { page } from '$app/stores';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import type { PageData } from './$types';
-	import { Pencil, Plus, Trash, Utensils } from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
 

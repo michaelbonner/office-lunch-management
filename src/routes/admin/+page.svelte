@@ -1,22 +1,21 @@
 <script lang="ts">
+	import {
+		Check,
+		List,
+		Pencil,
+		Search,
+		Settings,
+		Trash,
+		Users,
+		Utensils,
+		UtensilsCrossed,
+		X
+	} from '@lucide/svelte';
 	import OrganizationSelector from '$lib/components/OrganizationSelector.svelte';
 	import RestaurantForm from '$lib/components/RestaurantForm.svelte';
 	import UserForm from '$lib/components/UserForm.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import type { PageData } from './$types';
-	import {
-		Utensils,
-		Check,
-		List,
-		Pencil,
-		Trash,
-		X,
-		Search,
-		Building,
-		Users,
-		Settings,
-		UtensilsCrossed
-	} from '@lucide/svelte';
 
 	let { data = $bindable() }: { data: PageData } = $props();
 

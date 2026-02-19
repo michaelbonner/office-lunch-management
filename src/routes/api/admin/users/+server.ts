@@ -1,3 +1,5 @@
+import { error, json } from '@sveltejs/kit';
+import { and, eq, inArray } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { getTodayDate } from '$lib/server/opt-in';
 import {
@@ -8,8 +10,6 @@ import {
 } from '$lib/server/organization';
 import { member, optIn, user as userTable } from '../../../../../drizzle/schema';
 import type { RequestHandler } from './$types';
-import { error, json } from '@sveltejs/kit';
-import { and, eq, inArray } from 'drizzle-orm';
 
 export const POST: RequestHandler = async ({ locals, request }) => {
 	const user = locals.user;

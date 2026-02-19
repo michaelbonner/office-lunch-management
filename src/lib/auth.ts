@@ -1,4 +1,3 @@
-import { getRequestEvent } from '$app/server';
 import {
 	DATABASE_URL,
 	GITHUB_CLIENT_ID,
@@ -6,11 +5,12 @@ import {
 	GOOGLE_CLIENT_ID,
 	GOOGLE_CLIENT_SECRET
 } from '$env/static/private';
-import { createOrganizationForUser, getUserOrganizations } from './server/organization';
 import { APIError, betterAuth } from 'better-auth';
 import { admin, createAuthMiddleware, organization } from 'better-auth/plugins';
 import { sveltekitCookies } from 'better-auth/svelte-kit';
 import { Pool } from 'pg';
+import { getRequestEvent } from '$app/server';
+import { createOrganizationForUser, getUserOrganizations } from './server/organization';
 
 export const auth = betterAuth({
 	database: new Pool({

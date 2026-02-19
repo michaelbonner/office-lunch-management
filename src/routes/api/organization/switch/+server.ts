@@ -1,6 +1,6 @@
+import { error, json } from '@sveltejs/kit';
 import { setActiveOrganizationId } from '$lib/server/organization-context';
 import type { RequestHandler } from './$types';
-import { error, json } from '@sveltejs/kit';
 
 export const POST: RequestHandler = async ({ locals, request }) => {
 	const user = locals.user;

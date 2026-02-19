@@ -1,9 +1,9 @@
 <script lang="ts">
+	import { toast } from 'svelte-sonner';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { authClient } from '$lib/auth-client';
 	import Button from '$lib/components/ui/button/button.svelte';
-	import { toast } from 'svelte-sonner';
 
 	const session = authClient.useSession();
 	const callbackURL = $page.url.searchParams.get('callbackURL') || '/';

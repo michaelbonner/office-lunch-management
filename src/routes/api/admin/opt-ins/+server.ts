@@ -1,13 +1,13 @@
+import { error, json } from '@sveltejs/kit';
 import {
-	getOptedInUsers,
-	getNotOptedInUsers,
-	getTodayDate,
 	adminOptUserIn,
-	adminOptUserOut
+	adminOptUserOut,
+	getNotOptedInUsers,
+	getOptedInUsers,
+	getTodayDate
 } from '$lib/server/opt-in';
 import { isUserAdmin } from '$lib/server/organization';
 import type { RequestHandler } from './$types';
-import { error, json } from '@sveltejs/kit';
 
 export const GET: RequestHandler = async ({ locals, url }) => {
 	const user = locals.user;

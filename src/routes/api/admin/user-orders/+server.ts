@@ -1,9 +1,9 @@
+import { error, json } from '@sveltejs/kit';
+import { eq } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { isUserAdmin } from '$lib/server/organization';
 import { order, restaurant } from '../../../../../drizzle/schema';
 import type { RequestHandler } from './$types';
-import { error, json } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
 
 export const GET: RequestHandler = async ({ locals, url }) => {
 	const user = locals.user;

@@ -1,6 +1,6 @@
+import { error, json } from '@sveltejs/kit';
 import { getAllOrganizationsWithMembers, isUserSystemAdmin } from '$lib/server/organization';
 import type { RequestHandler } from './$types';
-import { error, json } from '@sveltejs/kit';
 
 export const GET: RequestHandler = async ({ locals }) => {
 	const user = locals.user;

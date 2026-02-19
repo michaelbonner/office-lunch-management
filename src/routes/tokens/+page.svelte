@@ -1,8 +1,8 @@
 <script lang="ts">
+	import { CircleCheck, Copy, Key, Plus, Trash2 } from '@lucide/svelte';
 	import { invalidate } from '$app/navigation';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import type { PageData } from './$types';
-	import { CircleCheck, Copy, Key, Plus, Trash2 } from '@lucide/svelte';
 
 	let { data = $bindable() }: { data: PageData } = $props();
 

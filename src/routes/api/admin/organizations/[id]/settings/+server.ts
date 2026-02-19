@@ -1,6 +1,6 @@
+import { error, json } from '@sveltejs/kit';
 import { isUserOrgAdmin, updateOrganizationWorkEmailDomain } from '$lib/server/organization';
 import type { RequestHandler } from './$types';
-import { error, json } from '@sveltejs/kit';
 
 export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	const user = locals.user;

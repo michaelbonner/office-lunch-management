@@ -1,6 +1,6 @@
+import { and, asc, eq, inArray, notExists } from 'drizzle-orm';
 import { member, organization, user } from '../../../drizzle/schema';
 import { db } from './db';
-import { and, asc, eq, inArray, notExists } from 'drizzle-orm';
 
 /**
  * Create a new organization for a user

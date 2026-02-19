@@ -1,7 +1,7 @@
 <script lang="ts">
+	import { toast } from 'svelte-sonner';
 	import { authClient } from '$lib/auth-client';
 	import Button from '$lib/components/ui/button/button.svelte';
-	import { toast } from 'svelte-sonner';
 
 	let { isAdmin = false, isSystemAdmin = false }: { isAdmin?: boolean; isSystemAdmin?: boolean } =
 		$props();
