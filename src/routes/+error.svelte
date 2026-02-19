@@ -1,13 +1,15 @@
 <script lang="ts">
 	let { status, error } = $props();
 
-	const isNotFound = status === 404;
-	const title = isNotFound
-		? 'This lunch order went to the wrong address.'
-		: 'Something went wrong.';
-	const message = isNotFound
-		? "The page you're looking for isn't on today's menu. Try a fresh route or head back home."
-		: "We couldn't load this page. Please try again or return home.";
+	const isNotFound = $derived(status === 404);
+	const title = $derived(
+		isNotFound ? 'This lunch order went to the wrong address.' : 'Something went wrong.'
+	);
+	const message = $derived(
+		isNotFound
+			? "The page you're looking for isn't on today's menu. Try a fresh route or head back home."
+			: "We couldn't load this page. Please try again or return home."
+	);
 </script>
 
 <svelte:head>
