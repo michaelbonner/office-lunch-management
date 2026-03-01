@@ -6,7 +6,8 @@ import {
 	GOOGLE_CLIENT_SECRET
 } from '$env/static/private';
 import { APIError, betterAuth } from 'better-auth';
-import { admin, createAuthMiddleware, organization } from 'better-auth/plugins';
+import { createAuthMiddleware } from 'better-auth/api';
+import { admin, organization } from 'better-auth/plugins';
 import { sveltekitCookies } from 'better-auth/svelte-kit';
 import { Pool } from 'pg';
 import { getRequestEvent } from '$app/server';
