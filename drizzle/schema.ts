@@ -29,6 +29,34 @@ export const optIn = pgTable(
 	]
 );
 
+export const optOut = pgTable(
+	'opt_out',
+	{
+		id: text().primaryKey().notNull(),
+		userId: text('user_id').notNull(),
+		organizationId: text('organization_id').notNull(),
+		optOutDate: text('opt_out_date').notNull(),
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull(),
+		updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull()
+	},
+	(table) => [
+		foreignKey({
+			columns: [table.userId],
+			foreignColumns: [user.id],
+			name: 'opt_out_userId_fkey'
+		}).onDelete('cascade'),
+		unique('opt_out_user_id_organization_id_opt_out_date_unique').on(
+			table.userId,
+			table.organizationId,
+			table.optOutDate
+		)
+	]
+);
+
 export const session = pgTable(
 	'session',
 	{

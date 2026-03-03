@@ -20,7 +20,13 @@ describe('/+page.svelte', () => {
 
 	describe('opt-in time display', () => {
 		it('shows opt-in time when user is opted in with a timestamp', async () => {
-			const optInStatus = { optedIn: true, timestamp: new Date('2026-03-03T17:30:00.000Z') };
+			const optInStatus = {
+				status: 'opted-in' as const,
+				optedIn: true,
+				optedOut: false,
+				timestamp: '2026-03-03T17:30:00.000Z',
+				optedOutTimestamp: null
+			};
 
 			render(Page, {
 				data: {
@@ -29,7 +35,7 @@ describe('/+page.svelte', () => {
 				}
 			});
 
-			const expectedTime = optInStatus.timestamp.toLocaleTimeString('en-US', {
+			const expectedTime = new Date(optInStatus.timestamp).toLocaleTimeString('en-US', {
 				hour: 'numeric',
 				minute: '2-digit'
 			});
@@ -40,18 +46,30 @@ describe('/+page.svelte', () => {
 			render(Page, {
 				data: {
 					...baseLoggedInData,
-					optInStatus: { optedIn: false, timestamp: null }
+					optInStatus: {
+						status: 'no-response',
+						optedIn: false,
+						optedOut: false,
+						timestamp: null,
+						optedOutTimestamp: null
+					}
 				}
 			});
 
 			await expect.element(page.getByText(/Opted in at/)).not.toBeInTheDocument();
 		});
 
-		it('does not show opt-in time when opted in but timestamp is null', async () => {
+		it('does not show opt-in time when user is opted out', async () => {
 			render(Page, {
 				data: {
 					...baseLoggedInData,
-					optInStatus: { optedIn: true, timestamp: null }
+					optInStatus: {
+						status: 'opted-out',
+						optedIn: false,
+						optedOut: true,
+						timestamp: null,
+						optedOutTimestamp: '2026-03-03T18:00:00.000Z'
+					}
 				}
 			});
 

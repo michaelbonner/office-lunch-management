@@ -2,8 +2,9 @@ import { error, json } from '@sveltejs/kit';
 import {
 	adminOptUserIn,
 	adminOptUserOut,
-	getNotOptedInUsers,
+	getNotRespondedUsers,
 	getOptedInUsers,
+	getOptedOutUsers,
 	getTodayDate
 } from '$lib/server/opt-in';
 import { isUserAdmin } from '$lib/server/organization';
@@ -36,13 +37,18 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	const listType = url.searchParams.get('listType') || 'opted-in';
 
 	try {
-		if (listType === 'not-opted-in') {
-			const notOptedInUsers = await getNotOptedInUsers(user.id, date);
-			return json(notOptedInUsers);
-		} else {
-			const optedInUsers = await getOptedInUsers(user.id, date);
-			return json(optedInUsers);
+		if (listType === 'not-opted-in' || listType === 'not-responded') {
+			const notRespondedUsers = await getNotRespondedUsers(user.id, date);
+			return json(notRespondedUsers);
 		}
+
+		if (listType === 'opted-out') {
+			const optedOutUsers = await getOptedOutUsers(user.id, date);
+			return json(optedOutUsers);
+		}
+
+		const optedInUsers = await getOptedInUsers(user.id, date);
+		return json(optedInUsers);
 	} catch (err) {
 		console.error('Error fetching opted-in users:', err);
 		throw error(500, 'Failed to fetch opted-in users');
@@ -90,6 +96,9 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 			return json({ success: true, message: 'User opted out successfully' });
 		}
 	} catch (err) {
+		if (err && typeof err === 'object' && 'status' in err) {
+			throw err;
+		}
 		console.error('Error processing admin opt-in request:', err);
 		if (err instanceof Error && err.message.includes('Unauthorized')) {
 			throw error(403, err.message);

@@ -12,10 +12,12 @@
 	let optInError = $state<string | null>(null);
 	let optOutError = $state<string | null>(null);
 	let isOptedIn = $state(false);
+	let isOptedOut = $state(false);
 	let optInTime = $state<Date | string | null>(null);
 
 	$effect(() => {
 		isOptedIn = data?.optInStatus?.optedIn ?? false;
+		isOptedOut = data?.optInStatus?.optedOut ?? false;
 		optInTime = data?.optInStatus?.timestamp ?? null;
 	});
 
@@ -56,6 +58,7 @@
 
 			const result = await response.json();
 			isOptedIn = result.optedIn;
+			isOptedOut = result.optedOut;
 			if (result.optedIn) optInTime = new Date();
 		} catch (error) {
 			console.error('Error opting in:', error);
@@ -84,6 +87,7 @@
 
 			const result = await response.json();
 			isOptedIn = result.optedIn;
+			isOptedOut = result.optedOut;
 			if (!result.optedIn) optInTime = null;
 		} catch (error) {
 			console.error('Error opting out:', error);
@@ -170,7 +174,11 @@
 									{:else}
 										<span class="text-2xl">⊘</span>
 										<div class="flex-1">
-											<p class="font-medium text-gray-700">You're not opted in for today</p>
+											<p class="font-medium text-gray-700">
+												{isOptedOut
+													? "You've explicitly opted out for today"
+													: "You haven't responded for today"}
+											</p>
 											<p class="text-sm text-gray-600">Date: {formatLongDate(data.todayDate)}</p>
 											{#if optInError}
 												<p class="mt-2 text-sm text-red-600">{optInError}</p>

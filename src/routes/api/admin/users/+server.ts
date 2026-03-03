@@ -8,7 +8,7 @@ import {
 	getUsersInSameOrganizations,
 	isUserAdmin
 } from '$lib/server/organization';
-import { member, optIn, user as userTable } from '../../../../../drizzle/schema';
+import { member, optIn, optOut, user as userTable } from '../../../../../drizzle/schema';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ locals, request }) => {
@@ -132,18 +132,31 @@ export const GET: RequestHandler = async ({ locals }) => {
 		const adminOrgIds = adminOrgs.map((org) => org.id);
 
 		let optedInUserIds: string[] = [];
+		let optedOutUserIds: string[] = [];
 		if (adminOrgIds.length > 0) {
 			const optIns = await db
 				.select({ userId: optIn.userId })
 				.from(optIn)
 				.where(and(eq(optIn.optInDate, today), inArray(optIn.organizationId, adminOrgIds)));
 			optedInUserIds = optIns.map((o) => o.userId);
+
+			const optOuts = await db
+				.select({ userId: optOut.userId })
+				.from(optOut)
+				.where(and(eq(optOut.optOutDate, today), inArray(optOut.organizationId, adminOrgIds)));
+			optedOutUserIds = optOuts.map((o) => o.userId);
 		}
 
 		// Add opt-in status to each user
 		const usersWithOptIn = users.map((u) => ({
 			...u,
-			optedInToday: optedInUserIds.includes(u.id)
+			optedInToday: optedInUserIds.includes(u.id),
+			optedOutToday: optedOutUserIds.includes(u.id),
+			optStatusToday: optedInUserIds.includes(u.id)
+				? 'opted-in'
+				: optedOutUserIds.includes(u.id)
+					? 'opted-out'
+					: 'no-response'
 		}));
 
 		return json({ users: usersWithOptIn });

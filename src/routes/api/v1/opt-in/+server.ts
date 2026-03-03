@@ -1,6 +1,6 @@
 import { error, json } from '@sveltejs/kit';
 import { authenticateRequest } from '$lib/server/api-auth';
-import { getTodayDate, isUserOptedIn, optUserIn, optUserOut } from '$lib/server/opt-in';
+import { getTodayDate, getUserOptInStatus, optUserIn, optUserOut } from '$lib/server/opt-in';
 import type { RequestHandler } from './$types';
 
 /**
@@ -22,12 +22,16 @@ export const GET: RequestHandler = async (event) => {
 	}
 
 	try {
-		const optedIn = await isUserOptedIn(user.id, date);
+		const status = await getUserOptInStatus(user.id, date);
 
 		return json({
 			userId: user.id,
 			date,
-			optedIn
+			status: status.status,
+			optedIn: status.optedIn,
+			optedOut: status.optedOut,
+			optedInAt: status.timestamp,
+			optedOutAt: status.optedOutTimestamp
 		});
 	} catch (err) {
 		console.error('Error checking opt-in status:', err);
@@ -67,7 +71,9 @@ export const POST: RequestHandler = async (event) => {
 				message: 'Successfully opted in',
 				userId: user.id,
 				date: dateToUse,
-				optedIn: true
+				status: 'opted-in',
+				optedIn: true,
+				optedOut: false
 			});
 		} else {
 			await optUserOut(user.id, dateToUse);
@@ -76,10 +82,15 @@ export const POST: RequestHandler = async (event) => {
 				message: 'Successfully opted out',
 				userId: user.id,
 				date: dateToUse,
-				optedIn: false
+				status: 'opted-out',
+				optedIn: false,
+				optedOut: true
 			});
 		}
 	} catch (err) {
+		if (err && typeof err === 'object' && 'status' in err) {
+			throw err;
+		}
 		console.error('Error processing opt-in request:', err);
 		throw error(500, 'Failed to process opt-in request');
 	}
