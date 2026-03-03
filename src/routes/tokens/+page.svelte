@@ -361,7 +361,7 @@
 										status: 'opted-in',
 										optedIn: true,
 										optedOut: false,
-										optedInAt: '2026-03-03T12:34:56.000Z',
+										optedInAt: '2024-01-15T12:34:56.000Z',
 										optedOutAt: null
 									},
 									null,
