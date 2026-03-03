@@ -23,7 +23,7 @@
 	let activeTab = $state<'restaurants' | 'users'>('restaurants');
 	let restaurantSearch = $state('');
 	let userSearch = $state('');
-	let userOptInFilter = $state<'all' | 'opted-in' | 'not-opted-in'>('all');
+	let userOptInFilter = $state<'all' | 'opted-in' | 'opted-out' | 'no-response'>('all');
 
 	// Data
 	let users = $state<any[]>([]);
@@ -55,14 +55,16 @@
 
 			if (!matchesSearch) return false;
 
-			if (userOptInFilter === 'opted-in') return u.optedInToday;
-			if (userOptInFilter === 'not-opted-in') return !u.optedInToday;
+			if (userOptInFilter === 'opted-in') return u.optStatusToday === 'opted-in';
+			if (userOptInFilter === 'opted-out') return u.optStatusToday === 'opted-out';
+			if (userOptInFilter === 'no-response') return u.optStatusToday === 'no-response';
 			return true;
 		})
 	);
 
-	let optedInCount = $derived(users.filter((u) => u.optedInToday).length);
-	let notOptedInCount = $derived(users.filter((u) => !u.optedInToday).length);
+	let optedInCount = $derived(users.filter((u) => u.optStatusToday === 'opted-in').length);
+	let optedOutCount = $derived(users.filter((u) => u.optStatusToday === 'opted-out').length);
+	let noResponseCount = $derived(users.filter((u) => u.optStatusToday === 'no-response').length);
 
 	async function refreshRestaurants() {
 		const response = await fetch('/api/restaurants');
@@ -510,13 +512,22 @@
 							</span>
 						</button>
 						<button
-							onclick={() => (userOptInFilter = 'not-opted-in')}
+							onclick={() => (userOptInFilter = 'opted-out')}
 							class="rounded-full px-3 py-1 text-sm font-medium transition-colors {userOptInFilter ===
-							'not-opted-in'
+							'opted-out'
+								? 'bg-red-600 text-white'
+								: 'bg-red-100 text-red-700 hover:bg-red-200'}"
+						>
+							Opted Out ({optedOutCount})
+						</button>
+						<button
+							onclick={() => (userOptInFilter = 'no-response')}
+							class="rounded-full px-3 py-1 text-sm font-medium transition-colors {userOptInFilter ===
+							'no-response'
 								? 'bg-gray-600 text-white'
 								: 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
 						>
-							Not Opted In ({notOptedInCount})
+							No Response ({noResponseCount})
 						</button>
 					</div>
 				</div>
@@ -599,13 +610,27 @@
 												>
 													{user.memberRole || 'member'}
 												</span>
-												{#if user.optedInToday}
+												{#if user.optStatusToday === 'opted-in'}
 													<span
 														class="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700"
 														title="Opted in for lunch today"
 													>
 														<UtensilsCrossed size={10} />
 														Lunch
+													</span>
+												{:else if user.optStatusToday === 'opted-out'}
+													<span
+														class="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-700"
+														title="Explicitly opted out of lunch today"
+													>
+														Opted Out
+													</span>
+												{:else}
+													<span
+														class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-700"
+														title="No lunch response recorded for today"
+													>
+														No Response
 													</span>
 												{/if}
 											</div>

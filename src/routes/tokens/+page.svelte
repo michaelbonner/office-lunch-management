@@ -333,7 +333,7 @@
 							<code class="text-sm font-medium">/api/v1/opt-in</code>
 						</div>
 						<p class="mb-3 text-sm text-muted-foreground">
-							Check if you're opted in for a specific date.
+							Check your lunch status for a specific date (opted in, opted out, or no response).
 						</p>
 
 						<div class="mb-3">
@@ -354,7 +354,19 @@
 						<div>
 							<p class="mb-1 text-sm font-medium">Example Response:</p>
 							<code class="block overflow-x-auto rounded bg-muted px-3 py-2 text-xs">
-								{JSON.stringify({ userId: 'user_123', date: '2024-01-15', optedIn: true }, null, 2)}
+								{JSON.stringify(
+									{
+										userId: 'user_123',
+										date: '2024-01-15',
+										status: 'opted-in',
+										optedIn: true,
+										optedOut: false,
+										optedInAt: '2026-03-03T12:34:56.000Z',
+										optedOutAt: null
+									},
+									null,
+									2
+								)}
 							</code>
 						</div>
 					</div>
@@ -409,7 +421,9 @@
 										message: 'Successfully opted in',
 										userId: 'user_123',
 										date: '2024-01-15',
-										optedIn: true
+										status: 'opted-in',
+										optedIn: true,
+										optedOut: false
 									},
 									null,
 									2

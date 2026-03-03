@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { Pencil, Plus, Trash } from '@lucide/svelte';
 	import { SvelteSet } from 'svelte/reactivity';
-	import { resolve } from '$app/paths';
 	import { page } from '$app/stores';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import type { PageData } from './$types';
@@ -26,19 +25,6 @@
 		name: string;
 		email: string;
 		order: Order | null;
-	};
-
-	type OptedInUser = {
-		id: string;
-		email: string;
-		name: string;
-		createdAt: Date;
-	};
-
-	type NotOptedInUser = {
-		id: string;
-		email: string;
-		name: string;
 	};
 
 	let selectedRestaurantId = $state<string>('');
@@ -119,10 +105,21 @@
 	let usersWithOrders = $derived(sortUsers(optedInUsersWithOrders.filter((u) => !!u.order)));
 	let usersWithoutOrders = $derived(sortUsers(optedInUsersWithOrders.filter((u) => !u.order)));
 
-	// Users who haven't opted in yet
-	let notOptedInUsersList = $derived(
+	// Users who explicitly opted out
+	let optedOutUsersList = $derived(
 		selectedRestaurantId
-			? data.notOptedInUsers.map((user) => ({
+			? data.optedOutUsers.map((user) => ({
+					id: user.id,
+					name: user.name,
+					email: user.email
+				}))
+			: []
+	);
+
+	// Users who have not responded yet
+	let notRespondedUsersList = $derived(
+		selectedRestaurantId
+			? data.notRespondedUsers.map((user) => ({
 					id: user.id,
 					name: user.name,
 					email: user.email
@@ -551,25 +548,57 @@
 		</div>
 	{/if}
 
-	<!-- Not Opted In Section -->
-	{#if notOptedInUsersList.length > 0}
+	<!-- Opted Out Section -->
+	{#if optedOutUsersList.length > 0}
 		<div class="mt-8 rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm">
 			<div class="border-b bg-muted/50 p-4">
 				<h3 class="font-semibold text-muted-foreground">
-					Not Opted In Today ({notOptedInUsersList.length})
+					Opted Out Today ({optedOutUsersList.length})
 				</h3>
-				<p class="text-sm text-muted-foreground">These users have not opted in for lunch today</p>
+				<p class="text-sm text-muted-foreground">These users explicitly opted out of lunch today</p>
 			</div>
 			<div class="divide-y">
-				{#each notOptedInUsersList as user (user.id)}
+				{#each optedOutUsersList as user (user.id)}
 					<div class="flex items-center justify-between p-4">
 						<div>
 							<div class="font-medium">{user.name}</div>
 							<div class="text-sm text-muted-foreground">{user.email}</div>
 						</div>
 						<Button size="sm" variant="outline" onclick={() => optInUser(user.id)}>
-							Opt In for Lunch
+							Opt Back In
 						</Button>
+					</div>
+				{/each}
+			</div>
+		</div>
+	{/if}
+
+	<!-- No Response Section -->
+	{#if notRespondedUsersList.length > 0}
+		<div class="mt-8 rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm">
+			<div class="border-b bg-muted/50 p-4">
+				<h3 class="font-semibold text-muted-foreground">
+					No Response Yet ({notRespondedUsersList.length})
+				</h3>
+				<p class="text-sm text-muted-foreground">
+					These users have not opted in or opted out for lunch today
+				</p>
+			</div>
+			<div class="divide-y">
+				{#each notRespondedUsersList as user (user.id)}
+					<div class="flex items-center justify-between p-4">
+						<div>
+							<div class="font-medium">{user.name}</div>
+							<div class="text-sm text-muted-foreground">{user.email}</div>
+						</div>
+						<div class="flex gap-2">
+							<Button size="sm" variant="outline" onclick={() => optInUser(user.id)}>
+								Opt In for Lunch
+							</Button>
+							<Button size="sm" variant="ghost" onclick={() => optOutUser(user.id)}>
+								Mark Opted Out
+							</Button>
+						</div>
 					</div>
 				{/each}
 			</div>

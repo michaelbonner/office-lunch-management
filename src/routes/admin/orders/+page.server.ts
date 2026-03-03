@@ -1,7 +1,12 @@
 import { redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import { getNotOptedInUsers, getOptedInUsers, getTodayDate } from '$lib/server/opt-in';
+import {
+	getNotRespondedUsers,
+	getOptedInUsers,
+	getOptedOutUsers,
+	getTodayDate
+} from '$lib/server/opt-in';
 import { getUsersInSameOrganizations, isUserAdmin } from '$lib/server/organization';
 import { restaurant } from '../../../../drizzle/schema';
 import type { PageServerLoad } from './$types';
@@ -33,14 +38,18 @@ export const load: PageServerLoad = async ({ locals }) => {
 	// Load opted-in users for today
 	const optedInUsers = await getOptedInUsers(user.id, getTodayDate());
 
-	// Load users who haven't opted in for today
-	const notOptedInUsers = await getNotOptedInUsers(user.id, getTodayDate());
+	// Load users explicitly opted out for today
+	const optedOutUsers = await getOptedOutUsers(user.id, getTodayDate());
+
+	// Load users with no response for today
+	const notRespondedUsers = await getNotRespondedUsers(user.id, getTodayDate());
 
 	return {
 		restaurants: allRestaurants,
 		users: allUsers,
 		optedInUsers,
-		notOptedInUsers,
+		optedOutUsers,
+		notRespondedUsers,
 		user
 	};
 };
