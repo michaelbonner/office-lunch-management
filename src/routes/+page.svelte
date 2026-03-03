@@ -12,10 +12,18 @@
 	let optInError = $state<string | null>(null);
 	let optOutError = $state<string | null>(null);
 	let isOptedIn = $state(false);
+	let optInTime = $state<Date | string | null>(null);
 
 	$effect(() => {
 		isOptedIn = data?.optInStatus?.optedIn ?? false;
+		optInTime = data?.optInStatus?.timestamp ?? null;
 	});
+
+	function formatTime(timestamp: Date | string | null): string {
+		if (!timestamp) return '';
+		const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
+		return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+	}
 
 	function formatLongDate(dateString: string | null): string {
 		if (!dateString) return '';
@@ -48,6 +56,7 @@
 
 			const result = await response.json();
 			isOptedIn = result.optedIn;
+			if (result.optedIn) optInTime = new Date();
 		} catch (error) {
 			console.error('Error opting in:', error);
 			optInError = 'Failed to opt in. Please try again.';
@@ -75,6 +84,7 @@
 
 			const result = await response.json();
 			isOptedIn = result.optedIn;
+			if (!result.optedIn) optInTime = null;
 		} catch (error) {
 			console.error('Error opting out:', error);
 			optOutError = 'Failed to opt out. Please try again.';
@@ -143,6 +153,9 @@
 										<div class="flex-1">
 											<p class="font-medium text-green-800">You're opted in for today</p>
 											<p class="text-sm text-gray-600">Date: {formatLongDate(data.todayDate)}</p>
+											{#if optInTime}
+												<p class="text-sm text-gray-500">Opted in at {formatTime(optInTime)}</p>
+											{/if}
 											{#if optOutError}
 												<p class="mt-2 text-sm text-red-600">{optOutError}</p>
 											{/if}
