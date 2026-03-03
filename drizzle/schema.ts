@@ -53,7 +53,8 @@ export const optOut = pgTable(
 			table.userId,
 			table.organizationId,
 			table.optOutDate
-		)
+		),
+		index('opt_out_organization_id_opt_out_date_idx').on(table.organizationId, table.optOutDate)
 	]
 );
 
