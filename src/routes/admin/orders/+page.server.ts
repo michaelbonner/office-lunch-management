@@ -34,15 +34,16 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	// Load users in the same organization(s)
 	const allUsers = await getUsersInSameOrganizations(user.id);
+	const today = getTodayDate();
 
 	// Load opted-in users for today
-	const optedInUsers = await getOptedInUsers(user.id, getTodayDate());
+	const optedInUsers = await getOptedInUsers(user.id, today);
 
 	// Load users explicitly opted out for today
-	const optedOutUsers = await getOptedOutUsers(user.id, getTodayDate());
+	const optedOutUsers = await getOptedOutUsers(user.id, today);
 
 	// Load users with no response for today
-	const notRespondedUsers = await getNotRespondedUsers(user.id, getTodayDate());
+	const notRespondedUsers = await getNotRespondedUsers(user.id, today);
 
 	return {
 		restaurants: allRestaurants,
