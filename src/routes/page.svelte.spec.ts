@@ -20,14 +20,20 @@ describe('/+page.svelte', () => {
 
 	describe('opt-in time display', () => {
 		it('shows opt-in time when user is opted in with a timestamp', async () => {
+			const optInStatus = { optedIn: true, timestamp: new Date('2026-03-03T17:30:00.000Z') };
+
 			render(Page, {
 				data: {
 					...baseLoggedInData,
-					optInStatus: { optedIn: true, timestamp: new Date('2026-03-03T17:30:00.000Z') }
+					optInStatus
 				}
 			});
 
-			await expect.element(page.getByText(/Opted in at/)).toBeInTheDocument();
+			const expectedTime = optInStatus.timestamp.toLocaleTimeString('en-US', {
+				hour: 'numeric',
+				minute: '2-digit'
+			});
+			await expect.element(page.getByText(`Opted in at ${expectedTime}`)).toBeInTheDocument();
 		});
 
 		it('does not show opt-in time when user is not opted in', async () => {
