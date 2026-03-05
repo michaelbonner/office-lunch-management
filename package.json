@@ -25,7 +25,7 @@
 	"devDependencies": {
 		"@eslint/compat": "^2.0.2",
 		"@eslint/js": "^10.0.1",
-		"@lucide/svelte": "^0.575.0",
+		"@lucide/svelte": "^0.577.0",
 		"@playwright/test": "^1.58.2",
 		"@sveltejs/adapter-node": "^5.5.4",
 		"@sveltejs/kit": "^2.53.4",
@@ -67,9 +67,9 @@
 	},
 	"dependencies": {
 		"@fontsource-variable/inter": "^5.2.8",
-		"better-auth": "^1.5.2",
+		"better-auth": "^1.5.3",
 		"date-fns-tz": "^3.2.0",
-		"pg": "^8.19.0",
+		"pg": "^8.20.0",
 		"postgres": "^3.4.8"
 	},
 	"cspell": {
