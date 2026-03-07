@@ -1,15 +1,27 @@
 <script lang="ts">
 	import '@fontsource-variable/inter/wght.css';
+	import type { Snippet } from 'svelte';
 	import { Toaster } from '$lib/components/ui/sonner/index.js';
 	import '../app.css';
+	import type { LayoutData } from './$types';
 	import './layout.css';
 
-	let { children } = $props();
+	let { data, children }: { data: LayoutData; children: Snippet } = $props();
 </script>
 
 <svelte:head>
 	<link rel="icon" href="/favicon.ico" sizes="any" />
 	<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+	<script
+		async
+		src="https://easycustomerfeedback.com/widget/1a27246abc4b4c6db760097e784c9558/embed"
+		data-label="Send feedback"
+		data-position="right"
+		data-color="#b87745"
+		data-name={data.user?.name ?? undefined}
+		data-email={data.user?.email ?? undefined}
+		data-user-id={data.user?.id ?? undefined}
+	></script>
 </svelte:head>
 
 <Toaster />

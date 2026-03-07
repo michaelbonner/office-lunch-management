@@ -4,6 +4,11 @@ import { page } from 'vitest/browser';
 import Page from './+page.svelte';
 
 const baseLoggedInData = {
+	user: {
+		id: 'user_123',
+		name: 'Jane Doe',
+		email: 'jane@example.com'
+	},
 	isLoggedIn: true,
 	isAdmin: false,
 	isSystemAdmin: false,
