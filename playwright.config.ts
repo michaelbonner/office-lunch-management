@@ -2,13 +2,13 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
 	webServer: {
-		command: 'bun run build && bun run preview',
+		command: 'bun run build && bun run preview -- --host 127.0.0.1 --port 4173',
 		port: 4173,
 		reuseExistingServer: !process.env.CI,
 		env: {
 			...process.env,
 			BETTER_AUTH_SECRET: 'testtesttesttesttesttesttesttest',
-			BETTER_AUTH_URL: 'http://localhost:4173'
+			BETTER_AUTH_URL: 'http://127.0.0.1:4173'
 		}
 	},
 	testDir: 'e2e',
@@ -18,7 +18,7 @@ export default defineConfig({
 	workers: process.env.CI ? 1 : undefined,
 	reporter: 'html',
 	use: {
-		baseURL: 'http://localhost:4173',
+		baseURL: 'http://127.0.0.1:4173',
 		trace: 'on-first-retry'
 	},
 	projects: [
