@@ -14,7 +14,7 @@
 	<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 	<script
 		async
-		src="https://easycustomerfeedback.com/widget/1a27246abc4b4c6db760097e784c9558/embed"
+		src="https://easycustomerfeedback.com/widget/921a77faad114c21a5ae2766a541cb87/embed"
 		data-label="Send feedback"
 		data-position="right"
 		data-color="#b87745"
