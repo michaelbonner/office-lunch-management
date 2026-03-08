@@ -22,7 +22,7 @@ test.describe('public pages', () => {
 		await page.goto('/');
 
 		const widget = page.locator(
-			'script[src="https://easycustomerfeedback.com/widget/1a27246abc4b4c6db760097e784c9558/embed"]'
+			'script[src="https://easycustomerfeedback.com/widget/921a77faad114c21a5ae2766a541cb87/embed"]'
 		);
 
 		await expect(widget).toHaveCount(1);
