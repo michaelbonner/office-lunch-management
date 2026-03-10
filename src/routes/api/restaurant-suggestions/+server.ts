@@ -7,6 +7,7 @@ import {
 	getOrganizationAdminUsers,
 	getUserOrganizations
 } from '$lib/server/organization';
+import { createRestaurantSuggestionUnsubscribeToken } from '$lib/server/restaurant-suggestion-email-preferences';
 import { restaurantSuggestion } from '../../../../drizzle/schema';
 import type { RequestHandler } from './$types';
 
@@ -71,7 +72,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	}
 
 	const admins = await getOrganizationAdminUsers(activeOrganizationId);
-	const recipientEmails = admins.map((admin) => admin.email).filter(Boolean);
 
 	const safeName = escapeHtml(name);
 	const safeMenuLink = menuLink ? escapeHtml(menuLink) : '';
@@ -95,24 +95,36 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		})
 		.returning({ id: restaurantSuggestion.id });
 
-	if (recipientEmails.length > 0) {
-		try {
-			await sendEmail({
-				to: recipientEmails.join(', '),
-				subject: `Restaurant suggestion for ${organization.name}: ${name}`,
-				replyTo: user.email || undefined,
-				text: [
-					`${user.name || 'A user'} requested that admins add a restaurant.`,
-					'',
-					`Request ID: ${suggestion.id}`,
-					`Review request: ${adminRequestsUrl}`,
-					`Organization: ${organization.name}`,
-					`Requested by: ${user.name || 'Unknown user'}${user.email ? ` (${user.email})` : ''}`,
-					`Restaurant name: ${name}`,
-					`Menu link: ${menuLink}`,
-					notes ? `Notes: ${notes}` : 'Notes: None provided'
-				].join('\n'),
-				html: `<!DOCTYPE html>
+	const adminsWithEmails = admins.filter((admin) => admin.email);
+
+	if (adminsWithEmails.length > 0) {
+		const emailResults = await Promise.allSettled(
+			adminsWithEmails.map(async (admin) => {
+				const unsubscribeToken = createRestaurantSuggestionUnsubscribeToken(
+					admin.id,
+					activeOrganizationId
+				);
+				const unsubscribeUrl = `${env.APP_URL || 'https://officelunch.app'}/unsubscribe/restaurant-suggestion-emails?token=${encodeURIComponent(unsubscribeToken)}`;
+				const safeUnsubscribeUrl = escapeHtml(unsubscribeUrl);
+
+				await sendEmail({
+					to: admin.email,
+					subject: `Restaurant suggestion for ${organization.name}: ${name}`,
+					replyTo: user.email || undefined,
+					text: [
+						`${user.name || 'A user'} requested that admins add a restaurant.`,
+						'',
+						`Request ID: ${suggestion.id}`,
+						`Review request: ${adminRequestsUrl}`,
+						`Organization: ${organization.name}`,
+						`Requested by: ${user.name || 'Unknown user'}${user.email ? ` (${user.email})` : ''}`,
+						`Restaurant name: ${name}`,
+						`Menu link: ${menuLink}`,
+						notes ? `Notes: ${notes}` : 'Notes: None provided',
+						'',
+						`Unsubscribe from these emails: ${unsubscribeUrl}`
+					].join('\n'),
+					html: `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#f3f7f8;font-family:Arial,sans-serif;">
@@ -153,14 +165,28 @@ export const POST: RequestHandler = async ({ request, locals }) => {
             </tr>
           </table>
         </td></tr>
+        <tr><td style="background:#faf7f2;border-radius:0 0 16px 16px;border-top:1px solid #e8e3dc;padding:20px 32px;">
+          <p style="margin:0;font-size:12px;color:#9e9690;">
+            Don’t want restaurant suggestion emails?
+            <a href="${safeUnsubscribeUrl}" style="color:#9e5b27;text-decoration:none;">Unsubscribe with one click</a>.
+          </p>
+        </td></tr>
       </table>
     </td></tr>
   </table>
 </body>
 </html>`
-			});
-		} catch (emailError) {
-			console.error('Failed to send admin notification for restaurant suggestion:', emailError);
+				});
+			})
+		);
+
+		for (const result of emailResults) {
+			if (result.status === 'rejected') {
+				console.error(
+					'Failed to send admin notification for restaurant suggestion:',
+					result.reason
+				);
+			}
 		}
 	}
 
