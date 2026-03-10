@@ -1,23 +1,51 @@
 <script lang="ts">
 	import { toast } from 'svelte-sonner';
+	import { page } from '$app/state';
 	import { authClient } from '$lib/auth-client';
 
 	let {
+		user = null,
 		isAdmin = false,
 		isSystemAdmin = false
 	}: {
+		user?: { name: string | null; email: string } | null;
 		isAdmin?: boolean;
 		isSystemAdmin?: boolean;
 	} = $props();
 
 	const session = authClient.useSession();
 
+	// Prefer server-rendered user prop to avoid SSR flash; fall back to live session
+	const isLoggedIn = $derived(user !== null || !!$session.data);
+	const displayName = $derived(
+		$session.data?.user.name || $session.data?.user.email || user?.name || user?.email || ''
+	);
+
+	const navLinks = $derived([
+		{ href: '/pricing', label: 'Pricing' },
+		{ href: '/contact', label: 'Contact' },
+		...(isLoggedIn
+			? [
+					{ href: '/orders', label: 'My Order' },
+					{ href: '/tokens', label: 'API Tokens' },
+					...(isAdmin ? [{ href: '/admin', label: 'Admin' }] : []),
+					...(isSystemAdmin ? [{ href: '/admin/organizations', label: 'Organizations' }] : [])
+				]
+			: [])
+	]);
+
 	let mobileOpen = $state(false);
+
+	// Close mobile menu on any navigation
+	$effect(() => {
+		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
+		page.url.pathname;
+		mobileOpen = false;
+	});
 
 	async function signOut() {
 		try {
 			await authClient.signOut();
-			mobileOpen = false;
 		} catch (error) {
 			const msg = error instanceof Error ? error.message : 'Unknown error';
 			toast.error(`Error signing out: ${msg}`);
@@ -36,51 +64,22 @@
 		</a>
 
 		<!-- Desktop nav -->
-		<nav class="hidden items-center gap-1 md:flex">
-			<a
-				href="/pricing"
-				class="rounded-lg px-3 py-1.5 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-[#141d1e]"
-				>Pricing</a
-			>
-			<a
-				href="/contact"
-				class="rounded-lg px-3 py-1.5 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-[#141d1e]"
-				>Contact</a
-			>
-
-			{#if $session.data}
-				<span class="mx-1 h-4 w-px bg-gray-200"></span>
+		<nav aria-label="Main" class="hidden items-center gap-1 md:flex">
+			{#each navLinks as link (link.href)}
 				<a
-					href="/orders"
-					class="rounded-lg px-3 py-1.5 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-[#141d1e]"
-					>My Order</a
+					href={link.href}
+					aria-current={page.url.pathname === link.href ? 'page' : undefined}
+					class="rounded-lg px-3 py-1.5 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-[#141d1e] aria-[current=page]:bg-[#9e5b27]/10 aria-[current=page]:font-medium aria-[current=page]:text-[#9e5b27]"
 				>
-				<a
-					href="/tokens"
-					class="rounded-lg px-3 py-1.5 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-[#141d1e]"
-					>API Tokens</a
-				>
-				{#if isAdmin}
-					<a
-						href="/admin"
-						class="rounded-lg px-3 py-1.5 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-[#141d1e]"
-						>Admin</a
-					>
-				{/if}
-				{#if isSystemAdmin}
-					<a
-						href="/admin/organizations"
-						class="rounded-lg px-3 py-1.5 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-[#141d1e]"
-						>Organizations</a
-					>
-				{/if}
-			{/if}
+					{link.label}
+				</a>
+			{/each}
 		</nav>
 
 		<!-- Desktop auth -->
 		<div class="hidden items-center gap-3 md:flex">
-			{#if $session.data}
-				<span class="max-w-[140px] truncate text-sm text-gray-500">{$session.data.user.name}</span>
+			{#if isLoggedIn}
+				<span class="max-w-[140px] truncate text-sm text-gray-500">{displayName}</span>
 				<button
 					onclick={signOut}
 					class="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
@@ -101,10 +100,13 @@
 		<button
 			onclick={() => (mobileOpen = !mobileOpen)}
 			aria-label="Toggle menu"
+			aria-expanded={mobileOpen}
+			aria-controls="mobile-menu"
 			class="flex size-9 items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-100 md:hidden"
 		>
 			{#if mobileOpen}
 				<svg
+					aria-hidden="true"
 					width="18"
 					height="18"
 					viewBox="0 0 18 18"
@@ -117,6 +119,7 @@
 				</svg>
 			{:else}
 				<svg
+					aria-hidden="true"
 					width="18"
 					height="18"
 					viewBox="0 0 18 18"
@@ -138,62 +141,32 @@
 
 	<!-- Mobile menu -->
 	{#if mobileOpen}
-		<div class="border-t border-gray-950/8 bg-[rgba(250,247,242,0.97)] px-6 py-4 md:hidden">
-			<nav class="flex flex-col gap-1">
-				<a
-					onclick={() => (mobileOpen = false)}
-					href="/pricing"
-					class="rounded-lg px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100"
-					>Pricing</a
-				>
-				<a
-					onclick={() => (mobileOpen = false)}
-					href="/contact"
-					class="rounded-lg px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100"
-					>Contact</a
-				>
+		<div
+			id="mobile-menu"
+			class="border-t border-gray-950/8 bg-[rgba(250,247,242,0.97)] px-6 py-4 md:hidden"
+		>
+			<nav aria-label="Mobile" class="flex flex-col gap-1">
+				{#each navLinks as link (link.href)}
+					<a
+						href={link.href}
+						aria-current={page.url.pathname === link.href ? 'page' : undefined}
+						class="rounded-lg px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 aria-[current=page]:bg-[#9e5b27]/10 aria-[current=page]:font-medium aria-[current=page]:text-[#9e5b27]"
+					>
+						{link.label}
+					</a>
+				{/each}
 
-				{#if $session.data}
-					<hr class="my-2 border-gray-100" />
-					<a
-						onclick={() => (mobileOpen = false)}
-						href="/orders"
-						class="rounded-lg px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100"
-						>My Order</a
-					>
-					<a
-						onclick={() => (mobileOpen = false)}
-						href="/tokens"
-						class="rounded-lg px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100"
-						>API Tokens</a
-					>
-					{#if isAdmin}
-						<a
-							onclick={() => (mobileOpen = false)}
-							href="/admin"
-							class="rounded-lg px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100"
-							>Admin</a
-						>
-					{/if}
-					{#if isSystemAdmin}
-						<a
-							onclick={() => (mobileOpen = false)}
-							href="/admin/organizations"
-							class="rounded-lg px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100"
-							>Organizations</a
-						>
-					{/if}
-					<hr class="my-2 border-gray-100" />
+				<hr class="my-2 border-gray-100" />
+
+				{#if isLoggedIn}
 					<div class="flex items-center justify-between px-3 py-1">
-						<span class="truncate text-sm text-gray-500">{$session.data.user.name}</span>
+						<span class="truncate text-sm text-gray-500">{displayName}</span>
 						<button onclick={signOut} class="text-sm font-medium text-[#9e5b27] hover:underline">
 							Sign out
 						</button>
 					</div>
 				{:else}
-					<hr class="my-2 border-gray-100" />
 					<a
-						onclick={() => (mobileOpen = false)}
 						href="/sign-in"
 						class="rounded-lg bg-[#9e5b27] px-3 py-2 text-center text-sm font-semibold text-white transition-colors hover:bg-[#7d4820]"
 					>

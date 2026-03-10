@@ -31,7 +31,7 @@
 
 <Toaster />
 
-<Header isAdmin={data.isAdmin} isSystemAdmin={data.isSystemAdmin} />
+<Header user={data.user} isAdmin={data.isAdmin} isSystemAdmin={data.isSystemAdmin} />
 
 <main class="flex-1">
 	{@render children?.()}
