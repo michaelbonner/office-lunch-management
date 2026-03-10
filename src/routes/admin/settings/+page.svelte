@@ -6,12 +6,15 @@
 	let { data }: { data: PageData } = $props();
 
 	let workEmailDomain = $state('');
+	let receiveRestaurantSuggestionEmails = $state(true);
 	let saving = $state(false);
 	let error = $state('');
 	let success = $state('');
 
 	$effect(() => {
 		workEmailDomain = data.organization.workEmailDomain || '';
+		receiveRestaurantSuggestionEmails =
+			data.memberSettings?.receiveRestaurantSuggestionEmails ?? true;
 	});
 
 	async function saveWorkEmailDomain() {
@@ -26,7 +29,8 @@
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({
-					workEmailDomain: workEmailDomain.trim() || null
+					workEmailDomain: workEmailDomain.trim() || null,
+					receiveRestaurantSuggestionEmails
 				})
 			});
 
@@ -35,7 +39,7 @@
 				throw new Error(responseData.message || 'Failed to update settings');
 			}
 
-			success = 'Work email domain updated successfully';
+			success = 'Organization settings updated successfully';
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to update settings';
 		} finally {
@@ -63,6 +67,35 @@
 	</div>
 
 	<div class="space-y-6">
+		<div class="rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm p-6">
+			<div class="flex items-start gap-4">
+				<div class="rounded-lg bg-primary/10 p-3">
+					<Mail size={24} class="text-primary" />
+				</div>
+				<div class="flex-1">
+					<h2 class="text-lg font-semibold">Suggestion Email Notifications</h2>
+					<p class="mt-1 text-sm text-muted-foreground">
+						Choose whether you receive emails when someone suggests a restaurant for this
+						organization.
+					</p>
+
+					<label class="mt-4 flex items-start gap-3 rounded-md border bg-background p-4">
+						<input
+							type="checkbox"
+							bind:checked={receiveRestaurantSuggestionEmails}
+							class="mt-1 h-4 w-4 rounded border-input text-primary focus:ring-ring"
+						/>
+						<div>
+							<p class="text-sm font-medium">Receive restaurant suggestion emails</p>
+							<p class="text-sm text-muted-foreground">
+								When enabled, you’ll get an email with a direct link to the requests queue.
+							</p>
+						</div>
+					</label>
+				</div>
+			</div>
+		</div>
+
 		<!-- Work Email Domain Section -->
 		<div class="rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm p-6">
 			<div class="flex items-start gap-4">

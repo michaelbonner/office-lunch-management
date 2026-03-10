@@ -1,5 +1,9 @@
 import { error, json } from '@sveltejs/kit';
-import { isUserOrgAdmin, updateOrganizationWorkEmailDomain } from '$lib/server/organization';
+import {
+	isUserOrgAdmin,
+	updateOrganizationMemberEmailPreferences,
+	updateOrganizationWorkEmailDomain
+} from '$lib/server/organization';
 import type { RequestHandler } from './$types';
 
 export const PATCH: RequestHandler = async ({ locals, params, request }) => {
@@ -24,7 +28,7 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 
 	try {
 		const body = await request.json();
-		const { workEmailDomain } = body;
+		const { workEmailDomain, receiveRestaurantSuggestionEmails } = body;
 
 		// Validate workEmailDomain if provided
 		if (workEmailDomain !== null && workEmailDomain !== undefined) {
@@ -63,8 +67,23 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 			}
 		}
 
+		if (
+			receiveRestaurantSuggestionEmails !== null &&
+			receiveRestaurantSuggestionEmails !== undefined &&
+			typeof receiveRestaurantSuggestionEmails !== 'boolean'
+		) {
+			throw error(400, 'Restaurant suggestion email preference must be a boolean');
+		}
+
 		// Update the work email domain
 		await updateOrganizationWorkEmailDomain(organizationId, workEmailDomain?.trim() || null);
+		if (typeof receiveRestaurantSuggestionEmails === 'boolean') {
+			await updateOrganizationMemberEmailPreferences(
+				user.id,
+				organizationId,
+				receiveRestaurantSuggestionEmails
+			);
+		}
 
 		return json({
 			success: true,

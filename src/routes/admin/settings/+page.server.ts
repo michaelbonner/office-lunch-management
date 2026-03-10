@@ -1,5 +1,9 @@
 import { redirect } from '@sveltejs/kit';
-import { getOrganizationById, isUserOrgAdmin } from '$lib/server/organization';
+import {
+	getOrganizationById,
+	getOrganizationMemberSettings,
+	isUserOrgAdmin
+} from '$lib/server/organization';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -25,6 +29,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	// Load organization details
 	const organization = await getOrganizationById(activeOrgId);
+	const memberSettings = await getOrganizationMemberSettings(user.id, activeOrgId);
 
 	if (!organization) {
 		throw redirect(303, '/');
@@ -32,6 +37,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	return {
 		organization,
+		memberSettings,
 		user
 	};
 };

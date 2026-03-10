@@ -85,6 +85,13 @@
       "when": 1773165600000,
       "tag": "0011_restaurant_suggestions",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1773172800000,
+      "tag": "0012_member_restaurant_suggestion_emails",
+      "breakpoints": true
     }
   ]
 }

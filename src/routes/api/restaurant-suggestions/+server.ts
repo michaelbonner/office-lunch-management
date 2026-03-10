@@ -73,10 +73,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const admins = await getOrganizationAdminUsers(activeOrganizationId);
 	const recipientEmails = admins.map((admin) => admin.email).filter(Boolean);
 
-	if (recipientEmails.length === 0) {
-		throw error(500, 'No admin recipients found for this organization');
-	}
-
 	const safeName = escapeHtml(name);
 	const safeMenuLink = menuLink ? escapeHtml(menuLink) : '';
 	const safeNotes = notes ? escapeHtml(notes).replace(/\n/g, '<br>') : '';
@@ -99,23 +95,24 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		})
 		.returning({ id: restaurantSuggestion.id });
 
-	try {
-		await sendEmail({
-			to: recipientEmails.join(', '),
-			subject: `Restaurant suggestion for ${organization.name}: ${name}`,
-			replyTo: user.email || undefined,
-			text: [
-				`${user.name || 'A user'} requested that admins add a restaurant.`,
-				'',
-				`Request ID: ${suggestion.id}`,
-				`Review request: ${adminRequestsUrl}`,
-				`Organization: ${organization.name}`,
-				`Requested by: ${user.name || 'Unknown user'}${user.email ? ` (${user.email})` : ''}`,
-				`Restaurant name: ${name}`,
-				`Menu link: ${menuLink}`,
-				notes ? `Notes: ${notes}` : 'Notes: None provided'
-			].join('\n'),
-			html: `<!DOCTYPE html>
+	if (recipientEmails.length > 0) {
+		try {
+			await sendEmail({
+				to: recipientEmails.join(', '),
+				subject: `Restaurant suggestion for ${organization.name}: ${name}`,
+				replyTo: user.email || undefined,
+				text: [
+					`${user.name || 'A user'} requested that admins add a restaurant.`,
+					'',
+					`Request ID: ${suggestion.id}`,
+					`Review request: ${adminRequestsUrl}`,
+					`Organization: ${organization.name}`,
+					`Requested by: ${user.name || 'Unknown user'}${user.email ? ` (${user.email})` : ''}`,
+					`Restaurant name: ${name}`,
+					`Menu link: ${menuLink}`,
+					notes ? `Notes: ${notes}` : 'Notes: None provided'
+				].join('\n'),
+				html: `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#f3f7f8;font-family:Arial,sans-serif;">
@@ -161,9 +158,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   </table>
 </body>
 </html>`
-		});
-	} catch (emailError) {
-		console.error('Failed to send admin notification for restaurant suggestion:', emailError);
+			});
+		} catch (emailError) {
+			console.error('Failed to send admin notification for restaurant suggestion:', emailError);
+		}
 	}
 
 	return json({ success: true });

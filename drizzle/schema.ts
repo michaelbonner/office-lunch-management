@@ -273,6 +273,9 @@ export const member = pgTable(
 		organizationId: text().notNull(),
 		userId: text().notNull(),
 		role: text().notNull(),
+		receiveRestaurantSuggestionEmails: boolean('receive_restaurant_suggestion_emails')
+			.notNull()
+			.default(true),
 		createdAt: timestamp({ withTimezone: true, mode: 'string' }).notNull().defaultNow()
 	},
 	(table) => [

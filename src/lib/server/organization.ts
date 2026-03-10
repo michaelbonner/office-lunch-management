@@ -39,6 +39,7 @@ export async function createOrganizationForUser(
 			organizationId: org.id,
 			userId,
 			role: 'owner',
+			receiveRestaurantSuggestionEmails: true,
 			createdAt: new Date().toISOString()
 		});
 
@@ -90,6 +91,7 @@ export async function addUserToOrganization(
 				organizationId,
 				userId,
 				role,
+				receiveRestaurantSuggestionEmails: true,
 				createdAt: new Date().toISOString()
 			})
 			.onConflictDoNothing();
@@ -458,6 +460,45 @@ export async function getOrganizationById(organizationId: string) {
 }
 
 /**
+ * Get member settings for a user in an organization
+ */
+export async function getOrganizationMemberSettings(userId: string, organizationId: string) {
+	try {
+		const memberships = await db
+			.select({
+				receiveRestaurantSuggestionEmails: member.receiveRestaurantSuggestionEmails
+			})
+			.from(member)
+			.where(and(eq(member.userId, userId), eq(member.organizationId, organizationId)))
+			.limit(1);
+
+		return memberships[0] || null;
+	} catch (error) {
+		console.error('Error getting organization member settings:', error);
+		throw error;
+	}
+}
+
+/**
+ * Update member email preferences for a user in an organization
+ */
+export async function updateOrganizationMemberEmailPreferences(
+	userId: string,
+	organizationId: string,
+	receiveRestaurantSuggestionEmails: boolean
+) {
+	try {
+		await db
+			.update(member)
+			.set({ receiveRestaurantSuggestionEmails })
+			.where(and(eq(member.userId, userId), eq(member.organizationId, organizationId)));
+	} catch (error) {
+		console.error('Error updating organization member email preferences:', error);
+		throw error;
+	}
+}
+
+/**
  * Get admin and owner users for an organization
  */
 export async function getOrganizationAdminUsers(organizationId: string) {
@@ -467,12 +508,17 @@ export async function getOrganizationAdminUsers(organizationId: string) {
 				id: user.id,
 				name: user.name,
 				email: user.email,
-				role: member.role
+				role: member.role,
+				receiveRestaurantSuggestionEmails: member.receiveRestaurantSuggestionEmails
 			})
 			.from(member)
 			.innerJoin(user, eq(user.id, member.userId))
 			.where(
-				and(eq(member.organizationId, organizationId), inArray(member.role, ['admin', 'owner']))
+				and(
+					eq(member.organizationId, organizationId),
+					inArray(member.role, ['admin', 'owner']),
+					eq(member.receiveRestaurantSuggestionEmails, true)
+				)
 			)
 			.orderBy(asc(user.name));
 	} catch (error) {
