@@ -31,7 +31,7 @@
 <Toaster />
 
 <main
-	class="min-h-screen [background:radial-gradient(circle_at_top_left,#fef1d1_0%,#faf7f2_45%,#f3f7f8_100%)]"
+	class="flex-1 [background:radial-gradient(circle_at_top_left,#fef1d1_0%,#faf7f2_45%,#f3f7f8_100%)]"
 >
 	{@render children?.()}
 </main>
@@ -45,6 +45,7 @@
 		<nav class="flex flex-wrap justify-center gap-6 text-sm">
 			<a href="/" class="transition-colors hover:text-[#f8f4ee]">Home</a>
 			<a href="/pricing" class="transition-colors hover:text-[#f8f4ee]">Pricing</a>
+			<a href="/contact" class="transition-colors hover:text-[#f8f4ee]">Contact</a>
 			<a href="/sign-in" class="transition-colors hover:text-[#f8f4ee]">Sign in</a>
 		</nav>
 		<p class="text-xs">© {new Date().getFullYear()} Office Lunch Management</p>
@@ -55,6 +56,9 @@
 	:global(body) {
 		font-family: 'Inter Variable', sans-serif;
 		margin: 0;
+		display: flex;
+		flex-direction: column;
+		min-height: 100vh;
 	}
 
 	:global(h1, h2, h3, h4, h5, h6) {
