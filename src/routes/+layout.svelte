@@ -1,15 +1,19 @@
 <script lang="ts">
 	import '@fontsource-variable/inter/wght.css';
 	import type { Snippet } from 'svelte';
+	import { page } from '$app/state';
 	import { Toaster } from '$lib/components/ui/sonner/index.js';
 	import '../app.css';
 	import type { LayoutData } from './$types';
 	import './layout.css';
 
 	let { data, children }: { data: LayoutData; children: Snippet } = $props();
+
+	const canonicalBase = 'https://officelunch.app';
 </script>
 
 <svelte:head>
+	<link rel="canonical" href="{canonicalBase}{page.url.pathname}" />
 	<link rel="icon" href="/favicon.ico" sizes="any" />
 	<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 	<script
