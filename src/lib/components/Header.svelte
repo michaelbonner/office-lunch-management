@@ -2,6 +2,7 @@
 	import { toast } from 'svelte-sonner';
 	import { page } from '$app/state';
 	import { authClient } from '$lib/auth-client';
+	import Logo from './Logo.svelte';
 
 	let {
 		user = null,
@@ -59,7 +60,7 @@
 	<div class="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
 		<!-- Logo -->
 		<a href="/" class="flex items-center gap-2 font-semibold text-[#141d1e]">
-			<span class="text-[#9e5b27]">🥪</span>
+			<Logo size={28} />
 			<span class="hidden sm:inline">Office Lunch</span>
 		</a>
 
