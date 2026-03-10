@@ -2,6 +2,7 @@
 	import '@fontsource-variable/inter/wght.css';
 	import type { Snippet } from 'svelte';
 	import { page } from '$app/state';
+	import Header from '$lib/components/Header.svelte';
 	import { Toaster } from '$lib/components/ui/sonner/index.js';
 	import '../app.css';
 	import type { LayoutData } from './$types';
@@ -30,9 +31,9 @@
 
 <Toaster />
 
-<main
-	class="flex-1 [background:radial-gradient(circle_at_top_left,#fef1d1_0%,#faf7f2_45%,#f3f7f8_100%)]"
->
+<Header isAdmin={data.isAdmin} isSystemAdmin={data.isSystemAdmin} />
+
+<main class="flex-1">
 	{@render children?.()}
 </main>
 
@@ -59,6 +60,7 @@
 		display: flex;
 		flex-direction: column;
 		min-height: 100vh;
+		background: radial-gradient(circle at top left, #fef1d1 0%, #faf7f2 45%, #f3f7f8 100%);
 	}
 
 	:global(h1, h2, h3, h4, h5, h6) {
