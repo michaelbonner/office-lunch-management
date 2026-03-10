@@ -36,6 +36,21 @@
 	{@render children?.()}
 </main>
 
+<footer class="border-t border-gray-950/8 bg-[#141d1e] px-6 py-10 text-[rgba(248,244,238,0.6)]">
+	<div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 sm:flex-row">
+		<div class="text-sm">
+			<p class="font-semibold text-[#f8f4ee]">Office Lunch Management</p>
+			<p class="mt-1">$5/month · Unlimited everything</p>
+		</div>
+		<nav class="flex flex-wrap justify-center gap-6 text-sm">
+			<a href="/" class="transition-colors hover:text-[#f8f4ee]">Home</a>
+			<a href="/pricing" class="transition-colors hover:text-[#f8f4ee]">Pricing</a>
+			<a href="/sign-in" class="transition-colors hover:text-[#f8f4ee]">Sign in</a>
+		</nav>
+		<p class="text-xs">© {new Date().getFullYear()} Office Lunch Management</p>
+	</div>
+</footer>
+
 <style>
 	:global(body) {
 		font-family: 'Inter Variable', sans-serif;
