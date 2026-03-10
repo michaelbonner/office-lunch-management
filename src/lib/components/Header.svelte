@@ -61,7 +61,7 @@
 		<!-- Logo -->
 		<a href="/" class="flex items-center gap-2 font-semibold text-[#141d1e]">
 			<Logo size={28} />
-			<span class="hidden sm:inline">Office Lunch</span>
+			<span>OfficeLunch</span>
 		</a>
 
 		<!-- Desktop nav -->
