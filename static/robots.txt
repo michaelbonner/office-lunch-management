@@ -1,3 +1,8 @@
-# allow crawling everything by default
 User-agent: *
-Disallow:
+Disallow: /admin/
+Disallow: /orders
+Disallow: /tokens
+Disallow: /opt-in/
+Disallow: /blackthorn-shortcuts-setup
+
+Sitemap: https://officelunch.app/sitemap.xml
