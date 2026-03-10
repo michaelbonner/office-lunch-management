@@ -138,6 +138,11 @@
 					<Pill>Admin dashboards</Pill>
 					<Pill>API tokens</Pill>
 				</div>
+				<p class="text-sm text-gray-500">
+					<a href="/pricing" class="underline underline-offset-2 hover:text-gray-700"
+						>View pricing</a
+					> — $5/month, unlimited everything.
+				</p>
 			</div>
 
 			<div class="surface border border-gray-950/8">
