@@ -1,3 +1,4 @@
+import { relations } from 'drizzle-orm/relations';
 import {
 	user,
 	optIn,
@@ -9,7 +10,6 @@ import {
 	member,
 	invitation
 } from './schema';
-import { relations } from 'drizzle-orm/relations';
 
 export const optInRelations = relations(optIn, ({ one }) => ({
 	user: one(user, {
