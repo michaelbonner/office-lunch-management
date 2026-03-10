@@ -30,6 +30,9 @@
 				Save your preferred lunch orders for each restaurant. View the menu first to decide what you
 				want!
 			</p>
+			<div class="mt-4">
+				<RestaurantSuggestionForm organizationName={activeOrganization?.name} />
+			</div>
 		</div>
 		<OrganizationSelector
 			organizations={data.userOrganizations || []}
@@ -61,10 +64,6 @@
 			{/each}
 		</div>
 	{/if}
-
-	<div class="mt-8">
-		<RestaurantSuggestionForm organizationName={activeOrganization?.name} />
-	</div>
 
 	<div class="mt-8">
 		<Button variant="outline" href="/">← Back to Home</Button>
