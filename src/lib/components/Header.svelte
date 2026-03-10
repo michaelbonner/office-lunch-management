@@ -23,7 +23,7 @@
 	);
 
 	const navLinks = $derived([
-		{ href: '/pricing', label: 'Pricing' },
+		...(!isLoggedIn ? [{ href: '/pricing', label: 'Pricing' }] : []),
 		{ href: '/contact', label: 'Contact' },
 		...(isLoggedIn
 			? [
