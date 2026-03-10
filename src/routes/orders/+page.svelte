@@ -1,17 +1,23 @@
 <script lang="ts">
-	import { Utensils } from '@lucide/svelte';
 	import OrderForm from '$lib/components/OrderForm.svelte';
 	import OrganizationSelector from '$lib/components/OrganizationSelector.svelte';
+	import RestaurantSuggestionForm from '$lib/components/RestaurantSuggestionForm.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import type { PageData } from './$types';
 
 	let { data = $bindable() }: { data: PageData } = $props();
+	let activeOrganization = $derived(
+		data.userOrganizations?.find((org) => org.id === data.activeOrganizationId) ?? null
+	);
 
 	async function refreshOrders() {
 		const response = await fetch('/api/orders');
 		if (response.ok) {
-			const orders = await response.json();
-			data.orders = new Map(orders.map((o: any) => [o.restaurantId, o.orderDetails]));
+			const orders = (await response.json()) as Array<{
+				restaurantId: string;
+				orderDetails: string;
+			}>;
+			data.orders = new Map(orders.map((order) => [order.restaurantId, order.orderDetails]));
 		}
 	}
 </script>
@@ -42,7 +48,7 @@
 		</div>
 	{:else}
 		<div class="space-y-4 lg:grid lg:grid-cols-3 lg:gap-4">
-			{#each data.restaurants as restaurant}
+			{#each data.restaurants as restaurant (restaurant.id)}
 				<div class="space-y-2">
 					<OrderForm
 						restaurantId={restaurant.id}
@@ -57,10 +63,10 @@
 	{/if}
 
 	<div class="mt-8">
-		<Button variant="outline" href="/">
-			{#snippet children()}
-				← Back to Home
-			{/snippet}
-		</Button>
+		<RestaurantSuggestionForm organizationName={activeOrganization?.name} />
+	</div>
+
+	<div class="mt-8">
+		<Button variant="outline" href="/">← Back to Home</Button>
 	</div>
 </div>

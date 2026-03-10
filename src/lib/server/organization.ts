@@ -458,6 +458,30 @@ export async function getOrganizationById(organizationId: string) {
 }
 
 /**
+ * Get admin and owner users for an organization
+ */
+export async function getOrganizationAdminUsers(organizationId: string) {
+	try {
+		return await db
+			.selectDistinct({
+				id: user.id,
+				name: user.name,
+				email: user.email,
+				role: member.role
+			})
+			.from(member)
+			.innerJoin(user, eq(user.id, member.userId))
+			.where(
+				and(eq(member.organizationId, organizationId), inArray(member.role, ['admin', 'owner']))
+			)
+			.orderBy(asc(user.name));
+	} catch (error) {
+		console.error('Error getting organization admin users:', error);
+		throw error;
+	}
+}
+
+/**
  * Check if a user is an admin/owner of a specific organization
  */
 export async function isUserOrgAdmin(userId: string, organizationId: string): Promise<boolean> {

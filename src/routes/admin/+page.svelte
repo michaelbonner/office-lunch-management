@@ -1,6 +1,7 @@
 <script lang="ts">
 	import {
 		Check,
+		Clock3,
 		List,
 		Pencil,
 		Search,
@@ -11,6 +12,7 @@
 		UtensilsCrossed,
 		X
 	} from '@lucide/svelte';
+	import { page } from '$app/state';
 	import OrganizationSelector from '$lib/components/OrganizationSelector.svelte';
 	import RestaurantForm from '$lib/components/RestaurantForm.svelte';
 	import UserForm from '$lib/components/UserForm.svelte';
@@ -20,15 +22,27 @@
 	let { data = $bindable() }: { data: PageData } = $props();
 
 	// State
-	let activeTab = $state<'restaurants' | 'users'>('restaurants');
+	type AdminTab = 'restaurants' | 'users' | 'requests';
+
+	function getTabFromUrl(): AdminTab {
+		const tab = page.url.searchParams.get('tab');
+		return tab === 'users' || tab === 'requests' ? tab : 'restaurants';
+	}
+
+	let activeTab = $state<AdminTab>(getTabFromUrl());
 	let restaurantSearch = $state('');
+	let suggestionFilter = $state<'all' | 'pending' | 'reviewed'>('pending');
 	let userSearch = $state('');
 	let userOptInFilter = $state<'all' | 'opted-in' | 'opted-out' | 'no-response'>('all');
 
 	// Data
 	let users = $state<any[]>([]);
 	let restaurants = $state(data.restaurants);
+	let suggestions = $state(data.suggestions);
 	let loadingUsers = $state(false);
+	let suggestionError = $state('');
+	let processingSuggestionId = $state<string | null>(null);
+	let reviewerNotesById = $state<Record<string, string>>({});
 
 	// Editing State - Restaurants
 	let editingRestaurantId = $state<string | null>(null);
@@ -45,6 +59,16 @@
 	// Derived
 	let filteredRestaurants = $derived(
 		restaurants.filter((r) => r.name.toLowerCase().includes(restaurantSearch.toLowerCase()))
+	);
+	let filteredSuggestions = $derived(
+		suggestions.filter((suggestion) => {
+			if (suggestionFilter === 'pending') return suggestion.status === 'pending';
+			if (suggestionFilter === 'reviewed') return suggestion.status !== 'pending';
+			return true;
+		})
+	);
+	let pendingSuggestionsCount = $derived(
+		suggestions.filter((suggestion) => suggestion.status === 'pending').length
 	);
 
 	let filteredUsers = $derived(
@@ -70,6 +94,57 @@
 		const response = await fetch('/api/restaurants');
 		if (response.ok) {
 			restaurants = await response.json();
+		}
+	}
+
+	function setReviewerNotes(suggestionId: string, value: string) {
+		reviewerNotesById = {
+			...reviewerNotesById,
+			[suggestionId]: value
+		};
+	}
+
+	async function reviewSuggestion(suggestionId: string, action: 'approve' | 'reject') {
+		processingSuggestionId = suggestionId;
+		suggestionError = '';
+
+		try {
+			const response = await fetch(`/api/admin/restaurant-suggestions/${suggestionId}`, {
+				method: 'PATCH',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					action,
+					reviewerNotes: reviewerNotesById[suggestionId] || ''
+				})
+			});
+
+			if (!response.ok) {
+				const payload = await response.json().catch(() => null);
+				throw new Error(payload?.message || `Failed to ${action} request`);
+			}
+
+			const payload = await response.json();
+			suggestions = suggestions.map((suggestion) =>
+				suggestion.id === suggestionId
+					? {
+							...suggestion,
+							status: payload.suggestion.status,
+							reviewerNotes: payload.suggestion.reviewerNotes,
+							reviewedAt: payload.suggestion.reviewedAt,
+							restaurantId: payload.suggestion.restaurantId
+						}
+					: suggestion
+			);
+
+			if (action === 'approve') {
+				await refreshRestaurants();
+			}
+		} catch (err) {
+			suggestionError = err instanceof Error ? err.message : `Failed to ${action} request`;
+		} finally {
+			processingSuggestionId = null;
 		}
 	}
 
@@ -251,6 +326,14 @@
 	$effect(() => {
 		restaurants = data.restaurants;
 	});
+
+	$effect(() => {
+		suggestions = data.suggestions;
+	});
+
+	$effect(() => {
+		activeTab = getTabFromUrl();
+	});
 </script>
 
 <div class="container mx-auto max-w-5xl px-4 py-8">
@@ -284,6 +367,21 @@
 			>
 				<Utensils size={18} />
 				Restaurants
+			</button>
+			<button
+				onclick={() => (activeTab = 'requests')}
+				class="flex items-center gap-2 border-b-2 px-1 pb-4 text-sm font-medium transition-colors hover:text-foreground {activeTab ===
+				'requests'
+					? 'border-primary text-foreground'
+					: 'border-transparent text-muted-foreground'}"
+			>
+				<Clock3 size={18} />
+				Requests
+				{#if pendingSuggestionsCount > 0}
+					<span class="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+						{pendingSuggestionsCount}
+					</span>
+				{/if}
 			</button>
 			<button
 				onclick={() => (activeTab = 'users')}
@@ -453,6 +551,170 @@
 						{/each}
 					{/if}
 				</div>
+			</div>
+		</div>
+	{:else if activeTab === 'requests'}
+		<div class="animate-in fade-in slide-in-from-bottom-2 duration-300">
+			<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+				<div>
+					<h2 class="text-lg font-semibold">Restaurant Requests ({suggestions.length})</h2>
+					<p class="text-sm text-muted-foreground">
+						Approve requests to create restaurants, or reject them with an optional note.
+					</p>
+				</div>
+				<div class="flex flex-wrap items-center gap-2">
+					<button
+						onclick={() => (suggestionFilter = 'pending')}
+						class="rounded-full px-3 py-1 text-sm font-medium transition-colors {suggestionFilter ===
+						'pending'
+							? 'bg-primary text-primary-foreground'
+							: 'bg-muted text-muted-foreground hover:bg-muted/80'}"
+					>
+						Pending ({pendingSuggestionsCount})
+					</button>
+					<button
+						onclick={() => (suggestionFilter = 'reviewed')}
+						class="rounded-full px-3 py-1 text-sm font-medium transition-colors {suggestionFilter ===
+						'reviewed'
+							? 'bg-primary text-primary-foreground'
+							: 'bg-muted text-muted-foreground hover:bg-muted/80'}"
+					>
+						Reviewed ({suggestions.length - pendingSuggestionsCount})
+					</button>
+					<button
+						onclick={() => (suggestionFilter = 'all')}
+						class="rounded-full px-3 py-1 text-sm font-medium transition-colors {suggestionFilter ===
+						'all'
+							? 'bg-primary text-primary-foreground'
+							: 'bg-muted text-muted-foreground hover:bg-muted/80'}"
+					>
+						All ({suggestions.length})
+					</button>
+				</div>
+			</div>
+
+			{#if suggestionError}
+				<div class="mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+					{suggestionError}
+				</div>
+			{/if}
+
+			<div class="space-y-3">
+				{#if filteredSuggestions.length === 0}
+					<div
+						class="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center text-muted-foreground"
+					>
+						<Clock3 class="mb-4 h-10 w-10 opacity-20" />
+						<p>No restaurant requests in this view.</p>
+					</div>
+				{:else}
+					{#each filteredSuggestions as suggestion (suggestion.id)}
+						<div class="rounded-lg border-2 border-yellow-900/20 bg-white/70 p-5 shadow-sm">
+							<div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+								<div class="min-w-0 flex-1 space-y-3">
+									<div class="flex flex-wrap items-center gap-2">
+										<h3 class="text-lg font-semibold">{suggestion.name}</h3>
+										<span
+											class="rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide {suggestion.status ===
+											'pending'
+												? 'bg-amber-100 text-amber-800'
+												: suggestion.status === 'approved'
+													? 'bg-green-100 text-green-700'
+													: 'bg-red-100 text-red-700'}"
+										>
+											{suggestion.status}
+										</span>
+									</div>
+
+									<div class="space-y-1 text-sm text-muted-foreground">
+										<p>
+											Requested by {suggestion.requestedByName} ({suggestion.requestedByEmail})
+										</p>
+										<p>Submitted {new Date(suggestion.createdAt).toLocaleString()}</p>
+										<p>Organization: {suggestion.organizationName}</p>
+									</div>
+
+									<a
+										href={suggestion.menuLink}
+										target="_blank"
+										rel="noopener noreferrer"
+										class="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
+									>
+										<List size={14} />
+										View Menu
+									</a>
+
+									{#if suggestion.notes}
+										<div class="rounded-md bg-muted/50 p-3 text-sm text-foreground">
+											<p class="mb-1 font-medium">Requester notes</p>
+											<p class="whitespace-pre-wrap">{suggestion.notes}</p>
+										</div>
+									{/if}
+
+									{#if suggestion.status === 'pending'}
+										<div>
+											<label
+												for="reviewer-notes-{suggestion.id}"
+												class="mb-1.5 block text-sm font-medium"
+											>
+												Admin note for requester
+											</label>
+											<textarea
+												id="reviewer-notes-{suggestion.id}"
+												value={reviewerNotesById[suggestion.id] || ''}
+												oninput={(event) =>
+													setReviewerNotes(
+														suggestion.id,
+														(event.currentTarget as HTMLTextAreaElement).value
+													)}
+												rows="3"
+												maxlength="1000"
+												class="w-full rounded-md border bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
+												placeholder="Optional note to include in the approval or rejection email"
+											></textarea>
+										</div>
+									{:else if suggestion.reviewerNotes}
+										<div class="rounded-md bg-muted/50 p-3 text-sm text-foreground">
+											<p class="mb-1 font-medium">Admin note sent to requester</p>
+											<p class="whitespace-pre-wrap">{suggestion.reviewerNotes}</p>
+										</div>
+									{/if}
+								</div>
+
+								<div class="flex shrink-0 flex-col gap-2 lg:w-44">
+									{#if suggestion.status === 'pending'}
+										<Button
+											onclick={() => reviewSuggestion(suggestion.id, 'approve')}
+											disabled={processingSuggestionId === suggestion.id}
+										>
+											{processingSuggestionId === suggestion.id ? 'Saving...' : 'Approve and Add'}
+										</Button>
+										<Button
+											variant="outline"
+											onclick={() => reviewSuggestion(suggestion.id, 'reject')}
+											disabled={processingSuggestionId === suggestion.id}
+										>
+											Reject
+										</Button>
+									{:else}
+										<div
+											class="rounded-md border bg-background px-3 py-2 text-sm text-muted-foreground"
+										>
+											Reviewed {suggestion.reviewedAt
+												? new Date(suggestion.reviewedAt).toLocaleString()
+												: 'recently'}
+										</div>
+										{#if suggestion.status === 'approved' && suggestion.restaurantId}
+											<div class="rounded-md bg-green-500/10 px-3 py-2 text-sm text-green-700">
+												Restaurant created
+											</div>
+										{/if}
+									{/if}
+								</div>
+							</div>
+						</div>
+					{/each}
+				{/if}
 			</div>
 		</div>
 	{:else if activeTab === 'users'}

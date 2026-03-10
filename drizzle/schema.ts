@@ -174,6 +174,54 @@ export const restaurant = pgTable(
 	]
 );
 
+export const restaurantSuggestion = pgTable(
+	'restaurant_suggestion',
+	{
+		id: text().primaryKey().notNull(),
+		organizationId: text('organization_id').notNull(),
+		requestedByUserId: text('requested_by_user_id').notNull(),
+		reviewedByUserId: text('reviewed_by_user_id'),
+		restaurantId: text('restaurant_id'),
+		name: text().notNull(),
+		menuLink: text('menu_link').notNull(),
+		notes: text(),
+		status: text().notNull().default('pending'),
+		reviewerNotes: text('reviewer_notes'),
+		reviewedAt: timestamp('reviewed_at', { withTimezone: true, mode: 'string' }),
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull(),
+		updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull()
+	},
+	(table) => [
+		foreignKey({
+			columns: [table.organizationId],
+			foreignColumns: [organization.id],
+			name: 'restaurant_suggestion_organization_id_fkey'
+		}).onDelete('cascade'),
+		foreignKey({
+			columns: [table.requestedByUserId],
+			foreignColumns: [user.id],
+			name: 'restaurant_suggestion_requested_by_user_id_fkey'
+		}).onDelete('cascade'),
+		foreignKey({
+			columns: [table.reviewedByUserId],
+			foreignColumns: [user.id],
+			name: 'restaurant_suggestion_reviewed_by_user_id_fkey'
+		}).onDelete('set null'),
+		foreignKey({
+			columns: [table.restaurantId],
+			foreignColumns: [restaurant.id],
+			name: 'restaurant_suggestion_restaurant_id_fkey'
+		}).onDelete('set null'),
+		index('restaurant_suggestion_organization_id_idx').on(table.organizationId),
+		index('restaurant_suggestion_status_idx').on(table.status),
+		index('restaurant_suggestion_requested_by_user_id_idx').on(table.requestedByUserId)
+	]
+);
+
 export const order = pgTable(
 	'order',
 	{

@@ -78,6 +78,13 @@
       "when": 1772563200000,
       "tag": "0010_wooden_spectrum",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1773165600000,
+      "tag": "0011_restaurant_suggestions",
+      "breakpoints": true
     }
   ]
 }
