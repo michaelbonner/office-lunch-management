@@ -10,5 +10,11 @@ services:
       POSTGRES_DB: local
     volumes:
       - pgdata:/var/lib/postgresql/data
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: always
+    ports:
+      - 1025:1025 # SMTP
+      - 8025:8025 # Web UI
 volumes:
   pgdata: {}
