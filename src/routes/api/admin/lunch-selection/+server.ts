@@ -1,4 +1,6 @@
 import { json } from '@sveltejs/kit';
+import { and, eq } from 'drizzle-orm';
+import { db } from '$lib/server/db';
 import { isUserAdmin } from '$lib/server/organization';
 import {
 	clearLunchSelection,
@@ -6,6 +8,7 @@ import {
 	getVoteTalliesForDate,
 	setLunchSelection
 } from '$lib/server/voting';
+import { restaurant } from '../../../../../drizzle/schema';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ locals }) => {
@@ -38,6 +41,16 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 	const { restaurantId } = await request.json();
 	if (!restaurantId) return json({ error: 'Missing restaurantId' }, { status: 400 });
+
+	// Validate restaurant belongs to the active organization
+	const [owned] = await db
+		.select({ id: restaurant.id })
+		.from(restaurant)
+		.where(and(eq(restaurant.id, restaurantId), eq(restaurant.organizationId, orgId)))
+		.limit(1);
+
+	if (!owned)
+		return json({ error: 'Restaurant not found in active organization' }, { status: 404 });
 
 	await setLunchSelection(user.id, orgId, restaurantId);
 	return json({ success: true });
