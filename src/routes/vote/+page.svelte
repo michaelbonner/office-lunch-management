@@ -222,7 +222,7 @@
 
 			<!-- Current card -->
 			<div
-				class="absolute inset-0 cursor-grab select-none overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-md active:cursor-grabbing"
+				class="absolute inset-0 cursor-grab select-none touch-none overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-md active:cursor-grabbing"
 				style="transform: {cardTransform}; transition: {cardTransition}; opacity: {cardOpacity};"
 				onpointerdown={handlePointerDown}
 				onpointermove={handlePointerMove}
