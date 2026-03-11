@@ -357,3 +357,76 @@ export const apiToken = pgTable(
 		index('api_token_userId_idx').using('btree', table.userId.asc().nullsLast().op('text_ops'))
 	]
 );
+
+export const restaurantVote = pgTable(
+	'restaurant_vote',
+	{
+		id: text().primaryKey().notNull(),
+		userId: text('user_id').notNull(),
+		restaurantId: text('restaurant_id').notNull(),
+		organizationId: text('organization_id').notNull(),
+		voteDate: text('vote_date').notNull(),
+		voteType: text('vote_type').notNull(), // 'up' | 'down'
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull(),
+		updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull()
+	},
+	(table) => [
+		foreignKey({
+			columns: [table.userId],
+			foreignColumns: [user.id],
+			name: 'restaurant_vote_user_id_fkey'
+		}).onDelete('cascade'),
+		foreignKey({
+			columns: [table.restaurantId],
+			foreignColumns: [restaurant.id],
+			name: 'restaurant_vote_restaurant_id_fkey'
+		}).onDelete('cascade'),
+		unique('restaurant_vote_user_restaurant_org_date_unique').on(
+			table.userId,
+			table.restaurantId,
+			table.organizationId,
+			table.voteDate
+		),
+		index('restaurant_vote_org_date_idx').on(table.organizationId, table.voteDate)
+	]
+);
+
+export const lunchSelection = pgTable(
+	'lunch_selection',
+	{
+		id: text().primaryKey().notNull(),
+		organizationId: text('organization_id').notNull(),
+		restaurantId: text('restaurant_id').notNull(),
+		selectionDate: text('selection_date').notNull(),
+		selectedByUserId: text('selected_by_user_id').notNull(),
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull(),
+		updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull()
+	},
+	(table) => [
+		foreignKey({
+			columns: [table.organizationId],
+			foreignColumns: [organization.id],
+			name: 'lunch_selection_organization_id_fkey'
+		}).onDelete('cascade'),
+		foreignKey({
+			columns: [table.restaurantId],
+			foreignColumns: [restaurant.id],
+			name: 'lunch_selection_restaurant_id_fkey'
+		}).onDelete('cascade'),
+		foreignKey({
+			columns: [table.selectedByUserId],
+			foreignColumns: [user.id],
+			name: 'lunch_selection_selected_by_user_id_fkey'
+		}).onDelete('cascade'),
+		unique('lunch_selection_org_date_unique').on(table.organizationId, table.selectionDate),
+		index('lunch_selection_org_date_idx').on(table.organizationId, table.selectionDate)
+	]
+);
