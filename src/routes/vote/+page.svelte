@@ -101,6 +101,13 @@
 
 		await new Promise((r) => setTimeout(r, 380));
 		currentIndex++;
+		// Skip restaurants already voted on (e.g. returning with a partial ballot)
+		while (
+			currentIndex < data.restaurants.length &&
+			votes[data.restaurants[currentIndex].id] !== null
+		) {
+			currentIndex++;
+		}
 		exitDirection = null;
 		dragX = 0;
 		isAnimating = false;
