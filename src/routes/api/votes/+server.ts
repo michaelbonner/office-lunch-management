@@ -6,14 +6,17 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const user = locals.user;
 	if (!user) return json({ error: 'Unauthorized' }, { status: 401 });
 
-	const body = await request.json();
-	const { restaurantId, organizationId, voteType } = body;
+	const orgId = locals.activeOrganizationId;
+	if (!orgId) return json({ error: 'No active organization' }, { status: 400 });
 
-	if (!restaurantId || !organizationId || !['up', 'down'].includes(voteType)) {
+	const body = await request.json();
+	const { restaurantId, voteType } = body;
+
+	if (!restaurantId || !['up', 'down'].includes(voteType)) {
 		return json({ error: 'Invalid request' }, { status: 400 });
 	}
 
-	await submitVote(user.id, restaurantId, organizationId, voteType);
+	await submitVote(user.id, restaurantId, orgId, voteType);
 	return json({ success: true });
 };
 
@@ -21,13 +24,16 @@ export const DELETE: RequestHandler = async ({ request, locals }) => {
 	const user = locals.user;
 	if (!user) return json({ error: 'Unauthorized' }, { status: 401 });
 
-	const body = await request.json();
-	const { restaurantId, organizationId } = body;
+	const orgId = locals.activeOrganizationId;
+	if (!orgId) return json({ error: 'No active organization' }, { status: 400 });
 
-	if (!restaurantId || !organizationId) {
+	const body = await request.json();
+	const { restaurantId } = body;
+
+	if (!restaurantId) {
 		return json({ error: 'Invalid request' }, { status: 400 });
 	}
 
-	await removeVote(user.id, restaurantId, organizationId);
+	await removeVote(user.id, restaurantId, orgId);
 	return json({ success: true });
 };
