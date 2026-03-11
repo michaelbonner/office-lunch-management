@@ -5,8 +5,18 @@
 
 	type VoteType = 'up' | 'down';
 
-	let votes = $state<Record<string, VoteType | null>>({});
-	let currentIndex = $state(0);
+	// Initialize votes and position once from server data (not reactive — intentional snapshot)
+	function buildInitialState() {
+		const init: Record<string, VoteType | null> = {};
+		for (const r of data.restaurants) init[r.id] = null;
+		for (const v of data.userVotes) init[v.restaurantId] = v.voteType as VoteType;
+		const firstUnvoted = data.restaurants.findIndex((r) => init[r.id] === null);
+		return { init, startIndex: firstUnvoted === -1 ? data.restaurants.length : firstUnvoted };
+	}
+
+	const _initial = buildInitialState();
+	let votes = $state<Record<string, VoteType | null>>(_initial.init);
+	let currentIndex = $state(_initial.startIndex);
 	let isDragging = $state(false);
 	let dragX = $state(0);
 	let dragStartX = $state(0);
@@ -14,20 +24,6 @@
 	let isAnimating = $state(false);
 	let error = $state<string | null>(null);
 	const todaySelection = $derived(data.todaySelection);
-
-	$effect(() => {
-		const init: Record<string, VoteType | null> = {};
-		for (const r of data.restaurants) {
-			init[r.id] = null;
-		}
-		for (const v of data.userVotes) {
-			init[v.restaurantId] = v.voteType as VoteType;
-		}
-		votes = init;
-
-		const firstUnvoted = data.restaurants.findIndex((r) => init[r.id] === null);
-		currentIndex = firstUnvoted === -1 ? data.restaurants.length : firstUnvoted;
-	});
 
 	const SWIPE_THRESHOLD = 100;
 
@@ -91,7 +87,7 @@
 			const res = await fetch('/api/votes', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ restaurantId, organizationId: data.activeOrganizationId, voteType })
+				body: JSON.stringify({ restaurantId, voteType })
 			});
 			if (!res.ok) throw new Error('Failed');
 		} catch {
@@ -116,20 +112,17 @@
 
 		try {
 			if (newVoteType === null) {
-				await fetch('/api/votes', {
+				const res = await fetch('/api/votes', {
 					method: 'DELETE',
 					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ restaurantId, organizationId: data.activeOrganizationId })
+					body: JSON.stringify({ restaurantId })
 				});
+				if (!res.ok) throw new Error();
 			} else {
 				const res = await fetch('/api/votes', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({
-						restaurantId,
-						organizationId: data.activeOrganizationId,
-						voteType: newVoteType
-					})
+					body: JSON.stringify({ restaurantId, voteType: newVoteType })
 				});
 				if (!res.ok) throw new Error();
 			}
