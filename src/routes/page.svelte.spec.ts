@@ -12,7 +12,8 @@ const baseLoggedInData = {
 	isLoggedIn: true,
 	isAdmin: false,
 	isSystemAdmin: false,
-	todayDate: '2026-03-03'
+	todayDate: '2026-03-03',
+	todaySelection: null
 };
 
 describe('/+page.svelte', () => {

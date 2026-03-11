@@ -154,6 +154,24 @@
 						</p>
 					{:else}
 						<h2 class="mb-1.5 text-[1.6rem] font-semibold">Welcome back</h2>
+						{#if data?.todaySelection}
+							<div class="rounded-lg border-2 border-green-300 bg-green-50 p-4">
+								<p class="text-xs font-semibold uppercase tracking-wider text-green-700">
+									🎉 Today's Lunch
+								</p>
+								<p class="mt-0.5 text-xl font-bold text-green-900">
+									{data.todaySelection.restaurantName}
+								</p>
+								<a
+									href={data.todaySelection.menuLink}
+									target="_blank"
+									rel="noopener noreferrer"
+									class="mt-1 inline-block text-sm font-medium text-green-700 underline underline-offset-2 hover:text-green-900"
+								>
+									View Menu →
+								</a>
+							</div>
+						{/if}
 						{#if data?.optInStatus}
 							<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
 								<div class="flex items-start gap-3">
