@@ -27,6 +27,7 @@
 		{ href: '/contact', label: 'Contact' },
 		...(isLoggedIn
 			? [
+					{ href: '/vote', label: 'Vote' },
 					{ href: '/orders', label: 'My Order' },
 					{ href: '/tokens', label: 'API Tokens' },
 					...(isAdmin ? [{ href: '/admin', label: 'Admin' }] : []),
