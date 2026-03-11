@@ -385,6 +385,11 @@ export const restaurantVote = pgTable(
 			foreignColumns: [restaurant.id],
 			name: 'restaurant_vote_restaurant_id_fkey'
 		}).onDelete('cascade'),
+		foreignKey({
+			columns: [table.organizationId],
+			foreignColumns: [organization.id],
+			name: 'restaurant_vote_organization_id_fkey'
+		}).onDelete('cascade'),
 		unique('restaurant_vote_user_restaurant_org_date_unique').on(
 			table.userId,
 			table.restaurantId,

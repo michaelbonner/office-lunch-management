@@ -1,0 +1,1 @@
+ALTER TABLE "restaurant_vote" ADD CONSTRAINT "restaurant_vote_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organization"("id") ON DELETE cascade ON UPDATE no action;
