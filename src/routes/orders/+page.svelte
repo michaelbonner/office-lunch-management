@@ -9,6 +9,11 @@
 	let activeOrganization = $derived(
 		data.userOrganizations?.find((org) => org.id === data.activeOrganizationId) ?? null
 	);
+	let dietaryPreferences = $state(data.userProfile?.dietaryPreferences ?? '');
+	let allergyNotes = $state(data.userProfile?.allergyNotes ?? '');
+	let profileLoading = $state(false);
+	let profileError = $state('');
+	let profileSuccess = $state(false);
 
 	async function refreshOrders() {
 		const response = await fetch('/api/orders');
@@ -18,6 +23,44 @@
 				orderDetails: string;
 			}>;
 			data.orders = new Map(orders.map((order) => [order.restaurantId, order.orderDetails]));
+		}
+	}
+
+	async function saveDietaryProfile(event: Event) {
+		event.preventDefault();
+		profileLoading = true;
+		profileError = '';
+		profileSuccess = false;
+
+		try {
+			const response = await fetch('/api/user', {
+				method: 'PATCH',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					dietaryPreferences,
+					allergyNotes
+				})
+			});
+
+			if (!response.ok) {
+				const result = await response.json();
+				throw new Error(result.message || 'Failed to save dietary profile');
+			}
+
+			data.userProfile = {
+				dietaryPreferences: dietaryPreferences.trim() || null,
+				allergyNotes: allergyNotes.trim() || null
+			};
+			profileSuccess = true;
+			setTimeout(() => {
+				profileSuccess = false;
+			}, 3000);
+		} catch (err) {
+			profileError = err instanceof Error ? err.message : 'Failed to save dietary profile';
+		} finally {
+			profileLoading = false;
 		}
 	}
 </script>
@@ -38,6 +81,65 @@
 			organizations={data.userOrganizations || []}
 			activeOrganizationId={data.activeOrganizationId}
 		/>
+	</div>
+
+	<div class="mb-8 rounded-lg border-2 border-yellow-900/20 bg-white/70 p-6 backdrop-blur-sm">
+		<div class="mb-4">
+			<h2 class="text-xl font-semibold">Dietary Profile</h2>
+			<p class="text-sm text-muted-foreground">
+				Save dietary preferences and allergies once so admins can see them whenever lunch is
+				ordered.
+			</p>
+		</div>
+
+		<form onsubmit={saveDietaryProfile} class="space-y-4">
+			<div>
+				<label for="dietary-preferences" class="mb-1.5 block text-sm font-medium">
+					Dietary preferences
+				</label>
+				<input
+					id="dietary-preferences"
+					bind:value={dietaryPreferences}
+					disabled={profileLoading}
+					maxlength="500"
+					class="w-full rounded-md border border-gray-400/50 bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none disabled:opacity-50"
+					placeholder="Vegan, vegetarian, gluten free, kosher, halal..."
+				/>
+			</div>
+
+			<div>
+				<label for="allergy-notes" class="mb-1.5 block text-sm font-medium">
+					Allergies or ingredients to avoid
+				</label>
+				<textarea
+					id="allergy-notes"
+					bind:value={allergyNotes}
+					disabled={profileLoading}
+					rows="3"
+					maxlength="1000"
+					class="min-h-[110px] w-full resize-y rounded-md border border-gray-400/50 bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none disabled:opacity-50"
+					placeholder="Peanuts, shellfish, beans, berries, dairy, cross-contact concerns..."
+				></textarea>
+			</div>
+
+			{#if profileError}
+				<div class="rounded-md bg-destructive/10 p-2 text-sm text-destructive">
+					{profileError}
+				</div>
+			{/if}
+
+			{#if profileSuccess}
+				<div class="rounded-md bg-green-500/10 p-2 text-sm text-green-600">
+					Dietary profile saved.
+				</div>
+			{/if}
+
+			<div class="flex justify-end">
+				<Button type="submit" size="sm" disabled={profileLoading}>
+					{profileLoading ? 'Saving...' : 'Save Dietary Profile'}
+				</Button>
+			</div>
+		</form>
 	</div>
 
 	{#if data.restaurants.length === 0}

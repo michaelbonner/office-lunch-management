@@ -17,6 +17,8 @@
 			id: string;
 			name: string | null;
 			email: string;
+			dietaryPreferences: string | null;
+			allergyNotes: string | null;
 		} | null;
 	};
 
@@ -24,6 +26,8 @@
 		id: string;
 		name: string;
 		email: string;
+		dietaryPreferences?: string | null;
+		allergyNotes?: string | null;
 		order: Order | null;
 	};
 
@@ -85,7 +89,7 @@
 	}
 
 	// Only show users who are opted in
-	let optedInUsersWithOrders = $derived(
+	let optedInUsersWithOrders = $derived<UserWithOrder[]>(
 		selectedRestaurantId
 			? data.users
 					.filter((user) => optedInUserIds.has(user.id))
@@ -95,6 +99,8 @@
 							id: user.id,
 							name: user.name,
 							email: user.email,
+							dietaryPreferences: user.dietaryPreferences,
+							allergyNotes: user.allergyNotes,
 							order: order || null
 						};
 					})
@@ -224,7 +230,9 @@
 					user: {
 						id: userId,
 						name: data.users.find((u) => u.id === userId)?.name || null,
-						email: data.users.find((u) => u.id === userId)?.email || ''
+						email: data.users.find((u) => u.id === userId)?.email || '',
+						dietaryPreferences: data.users.find((u) => u.id === userId)?.dietaryPreferences || null,
+						allergyNotes: data.users.find((u) => u.id === userId)?.allergyNotes || null
 					}
 				}
 			];
@@ -320,6 +328,18 @@
 	}
 
 	let selectedRestaurant = $derived(data.restaurants.find((r) => r.id === selectedRestaurantId));
+
+	function buildDietarySummary(user: {
+		dietaryPreferences?: string | null;
+		allergyNotes?: string | null;
+	}) {
+		return [
+			user.dietaryPreferences ? `Prefers: ${user.dietaryPreferences}` : null,
+			user.allergyNotes ? `Avoid: ${user.allergyNotes}` : null
+		]
+			.filter(Boolean)
+			.join(' • ');
+	}
 
 	let progressText = $derived.by(() => {
 		const ordersCount = usersWithOrders.length;
@@ -437,6 +457,11 @@
 										{userWithOrder.name}
 									</div>
 									<div class="text-sm text-muted-foreground">{userWithOrder.email}</div>
+									{#if buildDietarySummary(userWithOrder)}
+										<div class="mt-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">
+											{buildDietarySummary(userWithOrder)}
+										</div>
+									{/if}
 								</div>
 								<Button
 									size="sm"
@@ -485,6 +510,11 @@
 								<div class="font-medium">
 									{userWithOrder.name}
 								</div>
+								{#if buildDietarySummary(userWithOrder)}
+									<div class="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">
+										{buildDietarySummary(userWithOrder)}
+									</div>
+								{/if}
 								<textarea
 									bind:value={editingOrderDetails}
 									class="min-h-[100px] w-full rounded-md border bg-background px-3 py-2 focus:ring-2 focus:ring-ring focus:outline-none"
@@ -508,6 +538,11 @@
 									<div class="font-medium">
 										{userWithOrder.name}
 									</div>
+									{#if buildDietarySummary(userWithOrder)}
+										<div class="mt-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">
+											{buildDietarySummary(userWithOrder)}
+										</div>
+									{/if}
 									<div
 										class="mt-1 text-sm wrap-break-word whitespace-pre-wrap text-muted-foreground"
 									>

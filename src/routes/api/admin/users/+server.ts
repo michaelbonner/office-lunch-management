@@ -53,6 +53,8 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 				id: userTable.id,
 				email: userTable.email,
 				name: userTable.name,
+				dietaryPreferences: userTable.dietaryPreferences,
+				allergyNotes: userTable.allergyNotes,
 				role: userTable.role
 			})
 			.from(userTable)
@@ -100,7 +102,14 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		return json({
 			success: true,
 			message,
-			user: { id: userId, email, name, role: userRole }
+			user: {
+				id: userId,
+				email,
+				name,
+				role: userRole,
+				dietaryPreferences: null,
+				allergyNotes: null
+			}
 		});
 	} catch (err) {
 		console.error('Error creating/adding user:', err);

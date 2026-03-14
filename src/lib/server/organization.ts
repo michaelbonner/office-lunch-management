@@ -124,6 +124,8 @@ export async function getUsersInSameOrganizations(userId: string) {
 				id: user.id,
 				email: user.email,
 				name: user.name,
+				dietaryPreferences: user.dietaryPreferences,
+				allergyNotes: user.allergyNotes,
 				role: user.role,
 				memberRole: member.role,
 				createdAt: user.createdAt

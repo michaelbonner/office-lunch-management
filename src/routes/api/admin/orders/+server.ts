@@ -119,7 +119,9 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 			created_at: order.createdAt,
 			updated_at: order.updatedAt,
 			user_name: userTable.name,
-			user_email: userTable.email
+			user_email: userTable.email,
+			user_dietary_preferences: userTable.dietaryPreferences,
+			user_allergy_notes: userTable.allergyNotes
 		})
 		.from(order)
 		.leftJoin(userTable, eq(order.userId, userTable.id))
@@ -137,7 +139,9 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		user: {
 			id: row.user_id,
 			name: row.user_name,
-			email: row.user_email
+			email: row.user_email,
+			dietaryPreferences: row.user_dietary_preferences,
+			allergyNotes: row.user_allergy_notes
 		}
 	}));
 

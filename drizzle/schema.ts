@@ -131,6 +131,8 @@ export const user = pgTable(
 		id: text().primaryKey().notNull(),
 		name: text().notNull(),
 		email: text().notNull(),
+		dietaryPreferences: text('dietary_preferences'),
+		allergyNotes: text('allergy_notes'),
 		emailVerified: boolean().notNull(),
 		image: text(),
 		createdAt: timestamp({ withTimezone: true, mode: 'string' })
