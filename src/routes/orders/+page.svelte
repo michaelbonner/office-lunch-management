@@ -83,64 +83,71 @@
 		/>
 	</div>
 
-	<div class="mb-8 rounded-lg border-2 border-yellow-900/20 bg-white/70 p-6 backdrop-blur-sm">
-		<div class="mb-4">
-			<h2 class="text-xl font-semibold">Dietary Profile</h2>
-			<p class="text-sm text-muted-foreground">
-				Save dietary preferences and allergies once so admins can see them whenever lunch is
-				ordered.
-			</p>
+	<details class="mb-8 rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm">
+		<summary class="cursor-pointer list-none p-6">
+			<div class="flex items-start justify-between gap-4">
+				<div>
+					<h2 class="text-xl font-semibold">Dietary Profile</h2>
+					<p class="text-sm text-muted-foreground">
+						Save dietary preferences and allergies once so admins can see them whenever lunch is
+						ordered.
+					</p>
+				</div>
+				<span class="text-sm font-medium text-muted-foreground">Expand</span>
+			</div>
+		</summary>
+
+		<div class="border-t border-yellow-900/10 px-6 pb-6">
+			<form onsubmit={saveDietaryProfile} class="space-y-4 pt-4">
+				<div>
+					<label for="dietary-preferences" class="mb-1.5 block text-sm font-medium">
+						Dietary preferences
+					</label>
+					<input
+						id="dietary-preferences"
+						bind:value={dietaryPreferences}
+						disabled={profileLoading}
+						maxlength="500"
+						class="w-full rounded-md border border-gray-400/50 bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none disabled:opacity-50"
+						placeholder="Vegan, vegetarian, gluten free, kosher, halal..."
+					/>
+				</div>
+
+				<div>
+					<label for="allergy-notes" class="mb-1.5 block text-sm font-medium">
+						Allergies or ingredients to avoid
+					</label>
+					<textarea
+						id="allergy-notes"
+						bind:value={allergyNotes}
+						disabled={profileLoading}
+						rows="3"
+						maxlength="1000"
+						class="min-h-[110px] w-full resize-y rounded-md border border-gray-400/50 bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none disabled:opacity-50"
+						placeholder="Peanuts, shellfish, beans, berries, dairy, cross-contact concerns..."
+					></textarea>
+				</div>
+
+				{#if profileError}
+					<div class="rounded-md bg-destructive/10 p-2 text-sm text-destructive">
+						{profileError}
+					</div>
+				{/if}
+
+				{#if profileSuccess}
+					<div class="rounded-md bg-green-500/10 p-2 text-sm text-green-600">
+						Dietary profile saved.
+					</div>
+				{/if}
+
+				<div class="flex justify-end">
+					<Button type="submit" size="sm" disabled={profileLoading}>
+						{profileLoading ? 'Saving...' : 'Save Dietary Profile'}
+					</Button>
+				</div>
+			</form>
 		</div>
-
-		<form onsubmit={saveDietaryProfile} class="space-y-4">
-			<div>
-				<label for="dietary-preferences" class="mb-1.5 block text-sm font-medium">
-					Dietary preferences
-				</label>
-				<input
-					id="dietary-preferences"
-					bind:value={dietaryPreferences}
-					disabled={profileLoading}
-					maxlength="500"
-					class="w-full rounded-md border border-gray-400/50 bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none disabled:opacity-50"
-					placeholder="Vegan, vegetarian, gluten free, kosher, halal..."
-				/>
-			</div>
-
-			<div>
-				<label for="allergy-notes" class="mb-1.5 block text-sm font-medium">
-					Allergies or ingredients to avoid
-				</label>
-				<textarea
-					id="allergy-notes"
-					bind:value={allergyNotes}
-					disabled={profileLoading}
-					rows="3"
-					maxlength="1000"
-					class="min-h-[110px] w-full resize-y rounded-md border border-gray-400/50 bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none disabled:opacity-50"
-					placeholder="Peanuts, shellfish, beans, berries, dairy, cross-contact concerns..."
-				></textarea>
-			</div>
-
-			{#if profileError}
-				<div class="rounded-md bg-destructive/10 p-2 text-sm text-destructive">
-					{profileError}
-				</div>
-			{/if}
-
-			{#if profileSuccess}
-				<div class="rounded-md bg-green-500/10 p-2 text-sm text-green-600">
-					Dietary profile saved.
-				</div>
-			{/if}
-
-			<div class="flex justify-end">
-				<Button type="submit" size="sm" disabled={profileLoading}>
-					{profileLoading ? 'Saving...' : 'Save Dietary Profile'}
-				</Button>
-			</div>
-		</form>
-	</div>
+	</details>
 
 	{#if data.restaurants.length === 0}
 		<div
