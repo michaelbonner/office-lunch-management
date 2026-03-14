@@ -107,9 +107,12 @@
 			: []
 	);
 
-	// Split opted-in users into those with and without orders, then sort
-	let usersWithOrders = $derived(sortUsers(optedInUsersWithOrders.filter((u) => !!u.order)));
-	let usersWithoutOrders = $derived(sortUsers(optedInUsersWithOrders.filter((u) => !u.order)));
+	// All opted-in users sorted together (unified list)
+	let allOptedInUsersSorted = $derived(sortUsers(optedInUsersWithOrders));
+
+	// Keep these for counts
+	let usersWithOrdersCount = $derived(optedInUsersWithOrders.filter((u) => !!u.order).length);
+	let usersWithoutOrdersCount = $derived(optedInUsersWithOrders.filter((u) => !u.order).length);
 
 	// Users who explicitly opted out
 	let optedOutUsersList = $derived(
@@ -342,8 +345,9 @@
 	}
 
 	let progressText = $derived.by(() => {
-		const ordersCount = usersWithOrders.length;
-		return ordersCount > 0 ? `${checkedOrders.size} of ${ordersCount} entered` : '';
+		return usersWithOrdersCount > 0
+			? `${checkedOrders.size} of ${usersWithOrdersCount} entered`
+			: '';
 	});
 
 	// Initialize from URL parameter
@@ -418,74 +422,16 @@
 		</div>
 	{/if}
 
-	<!-- Users WITHOUT Orders -->
-	{#if selectedRestaurant && usersWithoutOrders.length > 0}
-		<div class="mb-8 rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm">
-			<div class="border-b bg-muted/50 p-4">
-				<h3 class="text-lg font-semibold">
-					Opted In - Without Orders ({usersWithoutOrders.length})
-				</h3>
-				<p class="text-sm text-muted-foreground">
-					These users opted in for lunch but haven't placed orders yet
-				</p>
-			</div>
-
-			<div class="divide-y">
-				{#each usersWithoutOrders as userWithOrder (userWithOrder.id)}
-					<div class="flex items-start gap-3 p-4 transition-colors hover:bg-accent/50">
-						{#if creatingOrderForUserId === userWithOrder.id}
-							<!-- Create Order Mode -->
-							<div class="min-w-0 flex-1 space-y-3">
-								<div class="font-medium">
-									{userWithOrder.name}
-								</div>
-								<textarea
-									bind:value={creatingOrderDetails}
-									class="min-h-[100px] w-full rounded-md border bg-background px-3 py-2 focus:ring-2 focus:ring-ring focus:outline-none"
-									placeholder="Enter order details..."
-								></textarea>
-								<div class="flex gap-2">
-									<Button size="sm" onclick={() => createOrder(userWithOrder.id)}>Save</Button>
-									<Button size="sm" variant="outline" onclick={cancelCreatingOrder}>Cancel</Button>
-								</div>
-							</div>
-						{:else}
-							<!-- No Order Yet -->
-							<div class="flex flex-1 items-start justify-between gap-3">
-								<div class="min-w-0 flex-1">
-									<div class="font-medium">
-										{userWithOrder.name}
-									</div>
-									<div class="text-sm text-muted-foreground">{userWithOrder.email}</div>
-									{#if buildDietarySummary(userWithOrder)}
-										<div class="mt-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">
-											{buildDietarySummary(userWithOrder)}
-										</div>
-									{/if}
-								</div>
-								<Button
-									size="sm"
-									variant="default"
-									onclick={() => startCreatingOrder(userWithOrder.id)}
-								>
-									<Plus />
-									Add Order
-								</Button>
-							</div>
-						{/if}
-					</div>
-				{/each}
-			</div>
-		</div>
-	{/if}
-
-	<!-- Users WITH Orders -->
-	{#if selectedRestaurant && usersWithOrders.length > 0}
+	<!-- All Opted-In Users (unified view) -->
+	{#if selectedRestaurant && allOptedInUsersSorted.length > 0}
 		<div class="rounded-lg border-2 border-yellow-900/20 bg-white/70 backdrop-blur-sm">
 			<div class="flex items-center justify-between border-b p-4">
 				<div>
 					<h2 class="text-xl font-semibold">{selectedRestaurant.name}</h2>
-					<p class="text-sm text-muted-foreground">Opted in with orders</p>
+					<p class="text-sm text-muted-foreground">
+						{allOptedInUsersSorted.length} opted in &middot; {usersWithOrdersCount} with orders &middot;
+						{usersWithoutOrdersCount} without
+					</p>
 					<a
 						href={selectedRestaurant.menuLink}
 						target="_blank"
@@ -502,9 +448,9 @@
 			</div>
 
 			<div class="divide-y">
-				{#each usersWithOrders as userWithOrder (userWithOrder.id)}
+				{#each allOptedInUsersSorted as userWithOrder (userWithOrder.id)}
 					<div class="flex items-start gap-3 p-4 transition-colors hover:bg-accent/50">
-						{#if editingOrderId === userWithOrder.order!.id}
+						{#if userWithOrder.order && editingOrderId === userWithOrder.order.id}
 							<!-- Edit Mode -->
 							<div class="min-w-0 flex-1 space-y-3">
 								<div class="font-medium">
@@ -525,12 +471,12 @@
 									<Button size="sm" variant="outline" onclick={cancelEditing}>Cancel</Button>
 								</div>
 							</div>
-						{:else}
+						{:else if userWithOrder.order}
 							<!-- View Mode with Order -->
 							<label class="flex min-w-0 flex-1 cursor-pointer items-start gap-3">
 								<input
 									type="checkbox"
-									checked={checkedOrders.has(userWithOrder.order!.id)}
+									checked={checkedOrders.has(userWithOrder.order.id)}
 									onchange={() => toggleOrder(userWithOrder.order!.id)}
 									class="mt-1 h-5 w-5 cursor-pointer rounded border-gray-300"
 								/>
@@ -546,7 +492,7 @@
 									<div
 										class="mt-1 text-sm wrap-break-word whitespace-pre-wrap text-muted-foreground"
 									>
-										{userWithOrder.order!.orderDetails}
+										{userWithOrder.order.orderDetails}
 									</div>
 								</div>
 							</label>
@@ -574,6 +520,50 @@
 								>
 									<span class="sr-only">Remove order</span>
 									<Trash />
+								</Button>
+							</div>
+						{:else if creatingOrderForUserId === userWithOrder.id}
+							<!-- Create Order Mode -->
+							<div class="min-w-0 flex-1 space-y-3">
+								<div class="font-medium">
+									{userWithOrder.name}
+								</div>
+								{#if buildDietarySummary(userWithOrder)}
+									<div class="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">
+										{buildDietarySummary(userWithOrder)}
+									</div>
+								{/if}
+								<textarea
+									bind:value={creatingOrderDetails}
+									class="min-h-[100px] w-full rounded-md border bg-background px-3 py-2 focus:ring-2 focus:ring-ring focus:outline-none"
+									placeholder="Enter order details..."
+								></textarea>
+								<div class="flex gap-2">
+									<Button size="sm" onclick={() => createOrder(userWithOrder.id)}>Save</Button>
+									<Button size="sm" variant="outline" onclick={cancelCreatingOrder}>Cancel</Button>
+								</div>
+							</div>
+						{:else}
+							<!-- No Order Yet -->
+							<div class="flex flex-1 items-start justify-between gap-3">
+								<div class="min-w-0 flex-1">
+									<div class="font-medium">
+										{userWithOrder.name}
+									</div>
+									<div class="text-sm italic text-muted-foreground">No order yet</div>
+									{#if buildDietarySummary(userWithOrder)}
+										<div class="mt-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">
+											{buildDietarySummary(userWithOrder)}
+										</div>
+									{/if}
+								</div>
+								<Button
+									size="sm"
+									variant="default"
+									onclick={() => startCreatingOrder(userWithOrder.id)}
+								>
+									<Plus />
+									Add Order
 								</Button>
 							</div>
 						{/if}
